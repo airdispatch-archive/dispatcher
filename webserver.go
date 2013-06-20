@@ -15,6 +15,7 @@ import (
 
 var flag_port = flag.String("port", "2048", "specify the port that the server should run on")
 var db_flush = flag.Bool("db_flush", false, "specifies to flush the database")
+var db_create = flag.Bool("db_create", false, "specifies to create the database")
 
 func main() {
 	flag.Parse()
@@ -54,9 +55,24 @@ func connectToDatabase() {
 		dbmap.DropTables()
 	}
 
-	err = dbmap.CreateTablesIfNotExists()
-	if err != nil {
-		fmt.Println("Problem Creating Tables")
-		fmt.Println(err)
+	if *db_create {
+		err = dbmap.CreateTablesIfNotExists()
+		if err != nil {
+			fmt.Println("Problem Creating Tables")
+			fmt.Println(err)
+		}
+
+		fmt.Println("Let's create the first user.")
+
+		var username, password string
+
+		fmt.Print("Username (no spaces): ")
+		fmt.Scanln(&username)
+
+		fmt.Print("Password: ")
+		fmt.Scanln(&password)
+
+		newUser := models.CreateUser(username, password)
+		dbmap.Insert(newUser)
 	}
 }

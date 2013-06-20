@@ -1,11 +1,22 @@
 package models
 
-import ()
-
 type User struct {
+	Salt string
 	Username string
 	Password string
 	Id int64
+}
+
+func CreateUser(username string, password string) *User {
+	newUser := &User {
+		Username: username,
+		Password: password,
+	}
+	return newUser
+}
+
+func VerifyPassword(user *User, password string) bool {
+	return true
 }
 
 type Mailbox struct {}
