@@ -8,8 +8,9 @@ import (
 	"fmt"
 	"log"
 	"github.com/coopernurse/gorp"
-	"editor/library"
-	"editor/models"
+	"dispatcher/library"
+	"dispatcher/views"
+	"dispatcher/models"
 	// "airdispat.ch/common"
 )
 
@@ -27,29 +28,36 @@ func main() {
 
 	theServer := &library.Server {
 		Port: temp_port,
+		DbMap: connectToDatabase(),
 	}
-
-	connectToDatabase()
+	theServer.ConfigServer()
+	defineRoutes(theServer)
 
 	theServer.RunServer()
 }
 
+func defineRoutes(s *library.Server) {
+	s.WebServer.Get("/", s.DisplayTemplate("login.html"))
+	s.WebServer.Get("/login", s.DisplayTemplate("login.html"))
+	s.WebServer.Post("/login", views.LoginView(s))
+}
+
 // START APPLICAITON-SPECIFIC CODE
 
-func connectToDatabase() {
+func connectToDatabase() (*gorp.DbMap) {
 	// serverKey, _ := common.CreateKey()
 	db, err := library.OpenDatabaseFromURL(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		fmt.Println("Unable to Connect to DB")
 		fmt.Println(err)
-		return
+		return nil
 	}
 
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
 	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "editor:", log.Lmicroseconds)) 
 
-	dbmap.AddTable(models.Tracker{}).SetKeys(true, "Id")
-	dbmap.AddTable(models.User{}).SetKeys(true, "Id")
+	dbmap.AddTableWithName(models.Tracker{}, "dispatch_trackers").SetKeys(true, "Id")
+	dbmap.AddTableWithName(models.User{}, "dispatch_users").SetKeys(true, "Id")
 
 	if *db_flush {
 		dbmap.DropTables()
@@ -60,6 +68,7 @@ func connectToDatabase() {
 		if err != nil {
 			fmt.Println("Problem Creating Tables")
 			fmt.Println(err)
+			return nil
 		}
 
 		fmt.Println("Let's create the first user.")
@@ -75,4 +84,6 @@ func connectToDatabase() {
 		newUser := models.CreateUser(username, password)
 		dbmap.Insert(newUser)
 	}
+
+	return dbmap
 }

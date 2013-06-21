@@ -15,8 +15,8 @@ func CreateUser(username string, password string) *User {
 	return newUser
 }
 
-func VerifyPassword(user *User, password string) bool {
-	return true
+func (user *User) VerifyPassword(password string) bool {
+	return (user.Password == password)
 }
 
 type Mailbox struct {}

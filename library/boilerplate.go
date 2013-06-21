@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html/template"
 	"path/filepath"
+	"github.com/coopernurse/gorp"
 )
 
 type Server struct {
@@ -17,16 +18,19 @@ type Server struct {
 	templateDirectory string
 	parsedTemplates map[string]template.Template
 	Port string
-	webServer *web.Server
+	DbMap *gorp.DbMap
+	WebServer *web.Server
+}
+
+func (s *Server) ConfigServer() {
+	s.loadConstants()
+	s.WebServer = web.NewServer()
+	s.loadTemplates(s.getTemplatePath(), "")
+	s.WebServer.Config.StaticDir = s.workingDirectory + "/static"
 }
 
 func (s *Server) RunServer() {
-	s.loadConstants()
-	s.webServer = web.NewServer()
-	s.defineRoutes()
-	s.loadTemplates(s.getTemplatePath(), "")
-	s.webServer.Config.StaticDir = s.workingDirectory + "/static"
-	s.webServer.Run("0.0.0.0:" + s.Port)
+	s.WebServer.Run("0.0.0.0:" + s.Port)
 }
 
 // EVERYTHING BELOW THIS LINE IS BOILERPLATE
@@ -68,7 +72,7 @@ func OpenDatabaseFromURL(url string) (*sql.DB, error) {
 }
 
 type TemplateView func(ctx *web.Context)
-func (s *Server) displayTemplate(templateName string) TemplateView {
+func (s *Server) DisplayTemplate(templateName string) TemplateView {
 	return func(ctx *web.Context) {
 		s.WriteTemplateToContext(templateName, ctx, nil)
 	}

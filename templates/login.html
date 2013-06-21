@@ -18,9 +18,14 @@
 					<h1>Dispatcher</h1>
 					<br/>
 					<h5>Please Login</h5>
-					<form>
-						<input type="text" placeholder="Username"/><br/>
-						<input type="password" placeholder="Password"/><br/>
+					{{ if .FormError }}
+						<div class="alert alert-error">
+							<strong>Uh oh!</strong> Looks like your Username and Password didn't match.
+						</div>
+					{{ end }}
+					<form action="/login" method="post">
+						<input type="text" placeholder="Username" name="username"/><br/>
+						<input type="password" placeholder="Password" name="password"/><br/>
 						<input type="submit" class="btn btn-danger" value="Login"/>
 					</form>
 				</div>
