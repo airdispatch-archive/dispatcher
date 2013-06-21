@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "github.com/gorilla/sessions"
 	_ "github.com/lib/pq"
 	"os"
 	"flag"
@@ -29,6 +28,9 @@ func main() {
 	theServer := &library.Server {
 		Port: temp_port,
 		DbMap: connectToDatabase(),
+		CookieAuthKey: []byte("secret-auth"),
+		CookieEncryptKey: []byte("secret-encryption-key"),
+		MainSessionName: "dispatcher-session",
 	}
 	theServer.ConfigServer()
 	defineRoutes(theServer)
@@ -37,7 +39,7 @@ func main() {
 }
 
 func defineRoutes(s *library.Server) {
-	s.WebServer.Get("/", s.DisplayTemplate("login.html"))
+	s.WebServer.Get("/", views.TemplateLoginRequired(s, s.DisplayTemplate("dashboard.html")))
 	s.WebServer.Get("/login", s.DisplayTemplate("login.html"))
 	s.WebServer.Post("/login", views.LoginView(s))
 }

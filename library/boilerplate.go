@@ -11,6 +11,7 @@ import (
 	"html/template"
 	"path/filepath"
 	"github.com/coopernurse/gorp"
+	"github.com/gorilla/sessions"
 )
 
 type Server struct {
@@ -20,6 +21,10 @@ type Server struct {
 	Port string
 	DbMap *gorp.DbMap
 	WebServer *web.Server
+	CookieAuthKey []byte
+	CookieEncryptKey []byte
+	MainSessionName string
+	sessionStore *sessions.CookieStore
 }
 
 func (s *Server) ConfigServer() {
@@ -27,6 +32,7 @@ func (s *Server) ConfigServer() {
 	s.WebServer = web.NewServer()
 	s.loadTemplates(s.getTemplatePath(), "")
 	s.WebServer.Config.StaticDir = s.workingDirectory + "/static"
+	s.sessionStore = sessions.NewCookieStore(s.CookieAuthKey, s.CookieEncryptKey)
 }
 
 func (s *Server) RunServer() {
@@ -34,6 +40,18 @@ func (s *Server) RunServer() {
 }
 
 // EVERYTHING BELOW THIS LINE IS BOILERPLATE
+
+func (s *Server) GetMainSession(ctx *web.Context) (*sessions.Session, error) {
+	return s.GetSessionForCTXAndName(ctx, s.MainSessionName)
+}
+
+func (s *Server) GetSessionForCTXAndName(ctx *web.Context, name string) (*sessions.Session, error) {
+	return s.sessionStore.Get(ctx.Request, name)
+}
+
+func SaveSessionWithContext(session *sessions.Session, ctx *web.Context) error {
+	return sessions.Save(ctx.Request, ctx)
+}
 
 func OpenDatabaseFromURL(url string) (*sql.DB, error) {
 	// Take out the Beginning
