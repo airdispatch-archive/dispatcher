@@ -32,7 +32,7 @@ func (s *Server) ConfigServer() {
 	s.WebServer = web.NewServer()
 	s.loadTemplates(s.getTemplatePath(), "")
 	s.WebServer.Config.StaticDir = s.workingDirectory + "/static"
-	s.sessionStore = sessions.NewCookieStore(s.CookieAuthKey, s.CookieEncryptKey)
+	s.sessionStore = sessions.NewCookieStore(s.CookieAuthKey)
 }
 
 func (s *Server) RunServer() {
@@ -49,8 +49,8 @@ func (s *Server) GetSessionForCTXAndName(ctx *web.Context, name string) (*sessio
 	return s.sessionStore.Get(ctx.Request, name)
 }
 
-func SaveSessionWithContext(session *sessions.Session, ctx *web.Context) error {
-	return sessions.Save(ctx.Request, ctx)
+func SaveSessionWithContext(sesh *sessions.Session, ctx *web.Context) error {
+	return sesh.Save(ctx.Request, ctx.ResponseWriter)
 }
 
 func OpenDatabaseFromURL(url string) (*sql.DB, error) {
@@ -124,10 +124,14 @@ func (s *Server) loadTemplates(folder string, append string) {
 	// Loop over all files
 	for _, fi := range files {
 		if fi.IsDir() {
-			// Call yourself if you find more tempaltes
+			// Call yourself if you find more templates
 			s.loadTemplates(dirname + fi.Name(), append + fi.Name() + string(filepath.Separator))
 		} else {
 			// Parse templates here
+			if fi.Name() == "base.html" {
+				continue
+			}
+
 			templateName := append + fi.Name()
 			s.parseTemplate(templateName, s.getSpecificTemplatePath(templateName))
 		}
@@ -135,7 +139,7 @@ func (s *Server) loadTemplates(folder string, append string) {
 }
 
 func (s *Server)parseTemplate(templateName string, filename string) {
-	tmp, err := template.New(templateName).ParseFiles(filename)
+	tmp, err := template.New(templateName).ParseFiles(filename, s.getSpecificTemplatePath("base.html"))
 	if err != nil {
 		fmt.Println("Unable to parse template " + templateName)
 		fmt.Println(err)
@@ -180,7 +184,7 @@ func (s *Server) WriteTemplateToContext(templatename string, ctx *web.Context, d
 	if !ok {
 		displayErrorPage(ctx, "Unable to find template. Template: " + templatename)
 	}
-	err := template.Execute(ctx, data)
+	err := template.ExecuteTemplate(ctx, "base", data)
 	if err != nil {
 		fmt.Println(err)
 	}

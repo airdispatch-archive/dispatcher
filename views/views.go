@@ -23,7 +23,10 @@ func LoginView(s *library.Server) ViewHandler {
 		if err == nil {
 			if len(theUsers) > 0 && theUsers[0] != nil {
 				if theUsers[0].VerifyPassword(password) {
-					LoginUser(s, theUsers[0], ctx)
+					if !LoginUser(s, theUsers[0], ctx) {
+						s.WriteTemplateToContext("login.html", ctx, map[string]bool{"DatabaseError": true})
+						return
+					}
 					ctx.Redirect(303, "/")
 					return
 				}
@@ -33,16 +36,21 @@ func LoginView(s *library.Server) ViewHandler {
 	}
 }
 
-func LoginUser(s *library.Server, u *models.User, ctx *web.Context) {
+func LoginUser(s *library.Server, u *models.User, ctx *web.Context) bool {
 	session, err := s.GetMainSession(ctx)
-	fmt.Println(err)
+	if err != nil {
+		return false
+	}
 	session.Values[LoginSessionMapKey] = u.Id
-	library.SaveSessionWithContext(session, ctx)
+	err = library.SaveSessionWithContext(session, ctx)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func GetLoggedInUser(s *library.Server, ctx *web.Context) (*models.User) {
 	session, err := s.GetMainSession(ctx)
-	fmt.Println(session, session.Values, err)
 
 	if session.Values[LoginSessionMapKey] == nil || session.Values[LoginSessionMapKey] == "" {
 		return nil
@@ -64,5 +72,14 @@ func TemplateLoginRequired(s *library.Server, t library.TemplateView) ViewHandle
 		} else {
 			ctx.Redirect(303, "/login")
 		}
+	}
+}
+
+func LogoutView(s *library.Server) ViewHandler {
+	return func(ctx *web.Context) {
+		session, _ := s.GetMainSession(ctx)
+		session.Values[LoginSessionMapKey] = -1
+		library.SaveSessionWithContext(session, ctx)
+		ctx.Redirect(303, "/login")
 	}
 }

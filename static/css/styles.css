@@ -2,3 +2,11 @@ body {
 	font-family: "Open Sans", "Helvetica", "Arial", sans-serif;
 	color: #0d0a1a;
 }
+
+.right-align {
+	text-align: right;
+}
+
+.center-align {
+	text-align: center;
+}

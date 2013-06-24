@@ -1,0 +1,44 @@
+{{ define "base" }}
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf8">
+		<title>{{ template "head" . }}</title>
+		<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+		<link href="/css/styles.css" rel="stylesheet">
+		<link href='http://fonts.googleapis.com/css?family=Open+Sans:200,400,600,700' rel='stylesheet' type='text/css'><link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
+		<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome-ie7.min.css" rel="stylesheet">
+	</head>
+	<body>
+		<br/>
+		<div class="container">
+			<div class="row">
+				<div class="span2 right-align">
+					<a href="/"><img src="/img/logo.png" width="100px"></a>
+				</div>
+				<div class="span10">
+					<h1>Dispatcher</h1>
+					<h5>{{ template "title" . }}</h5>
+				</div>
+			</div>
+			<br/>
+			<div class="row">
+				<div class="span2 right-align" {{ template "shownav" . }}>
+					<a href="/compose" class="btn btn-danger"><i class="icon-edit"></i> Compose</a>
+					<br/><br/>
+					<ul class="nav nav-list">
+						<li class="nav-header">Folders</li>
+						<li><a href="#">Inbox</a></li>
+						<li><a href="#">Sent</a></li>
+						<li class="divider"></li>
+						<li><a href="/logout">Logout</a></li>
+					</ul>
+				</div>
+				<div class="span10">
+					{{ template "body" . }}
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+{{ end }}

@@ -1,35 +1,22 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="utf8">
-		<title>Dispatcher</title>
-		<link href="/css/bootstrap.min.css" rel="stylesheet">
-		<link href="/css/styles.css" rel="stylesheet">
-		<link href='http://fonts.googleapis.com/css?family=Open+Sans:200,400,600,700' rel='stylesheet' type='text/css'>
-	</head>
-	<body>
-		<br/>
-		<div class="container">
-			<div class="row">
-				<div class="span1">
-					<img src="/img/logo.png" width="100px">
-				</div>
-				<div class="span11">
-					<h1>Dispatcher</h1>
-					<br/>
-					<h5>Please Login</h5>
-					{{ if .FormError }}
-						<div class="alert alert-error">
-							<strong>Uh oh!</strong> Looks like your Username and Password didn't match.
-						</div>
-					{{ end }}
-					<form action="/login" method="post">
-						<input type="text" placeholder="Username" name="username"/><br/>
-						<input type="password" placeholder="Password" name="password"/><br/>
-						<input type="submit" class="btn btn-danger" value="Login"/>
-					</form>
-				</div>
-			</div>
+{{ define "head" }}Dispatcher :: Login{{end }}
+{{ define "title" }}Please Login{{ end }}
+
+{{ define "shownav" }}style="visibility:hidden"{{end}}
+
+{{ define "body" }}
+	{{ if .FormError }}
+		<div class="alert alert-error">
+			<strong>Uh oh!</strong> Looks like your Username and Password didn't match.
 		</div>
-	</body>
-</html>
+	{{ end }}
+	{{ if .DatabaseErorr }}
+		<div class="alert alert-warning">
+			<strong>Whoops!</strong> We had a database error. Please try again.
+		</div>
+	{{ end }}
+	<form action="/login" method="post">
+		<input type="text" placeholder="Username" name="username"/><br/>
+		<input type="password" placeholder="Password" name="password"/><br/>
+		<input type="submit" class="btn btn-danger" value="Login"/>
+	</form>
+{{ end }}
