@@ -39,9 +39,10 @@ func main() {
 }
 
 func defineRoutes(s *library.Server) {
-	s.WebServer.Get("/", views.TemplateLoginRequired(s, s.DisplayTemplate("dashboard.html")))
+	s.WebServer.Get("/", views.TemplateLoginRequired(s, views.Dashboard(s)))
 
 	s.WebServer.Get("/compose", views.TemplateLoginRequired(s, s.DisplayTemplate("compose.html")))
+	s.WebServer.Post("/compose", views.TemplateLoginRequired(s, views.CreateMessage(s)))
 
 	s.WebServer.Get("/login", s.DisplayTemplate("login.html"))
 	s.WebServer.Post("/login", views.LoginView(s))

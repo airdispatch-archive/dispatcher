@@ -4,14 +4,27 @@ import (
 	"github.com/hoisie/web"
 	"dispatcher/models"
 	"dispatcher/library"
-	"fmt"
+	"airdispat.ch/common"
+	"bytes"
 )
 
 type ViewHandler func(ctx *web.Context)
 
+func CreateMessage(s *library.Server) library.TemplateView {
+	return func(ctx *web.Context) {
+		ctx.Redirect(303, "/")
+	}
+}
+
+func Dashboard(s *library.Server) library.TemplateView {
+	return func(ctx *web.Context) {
+		s.WriteTemplateToContext("dashboard.html", ctx, GetLoggedInUser(s, ctx))
+	}
+}
+
 const LoginSessionMapKey = "user_id"
 
-func LoginView(s *library.Server) ViewHandler {
+func LoginView(s *library.Server) library.TemplateView {
 
 	return func(ctx *web.Context) {
 		username := ctx.Params["username"]
@@ -19,7 +32,6 @@ func LoginView(s *library.Server) ViewHandler {
 
 		var theUsers []*models.User
 		_, err := s.DbMap.Select(&theUsers, "select * from dispatch_users where username='" + username + "'")
-		fmt.Println(theUsers, err)
 		if err == nil {
 			if len(theUsers) > 0 && theUsers[0] != nil {
 				if theUsers[0].VerifyPassword(password) {
@@ -52,7 +64,7 @@ func LoginUser(s *library.Server, u *models.User, ctx *web.Context) bool {
 func GetLoggedInUser(s *library.Server, ctx *web.Context) (*models.User) {
 	session, err := s.GetMainSession(ctx)
 
-	if session.Values[LoginSessionMapKey] == nil || session.Values[LoginSessionMapKey] == "" {
+	if session.Values[LoginSessionMapKey] == nil || session.Values[LoginSessionMapKey] == "" || session.Values[LoginSessionMapKey] == -1 {
 		return nil
 	}
 
@@ -61,10 +73,20 @@ func GetLoggedInUser(s *library.Server, ctx *web.Context) (*models.User) {
 		return nil
 	}
 
-	return user.(*models.User)
+	if user == nil {
+		return nil
+	}
+
+	newUser := user.(*models.User)
+	
+	keys, _ := common.GobDecodeKey(bytes.NewBuffer(newUser.Keypair))
+	newUser.LoadedKey = keys
+	newUser.Address = common.StringAddress(&keys.PublicKey)
+
+	return newUser
 }
 
-func TemplateLoginRequired(s *library.Server, t library.TemplateView) ViewHandler {
+func TemplateLoginRequired(s *library.Server, t library.TemplateView) library.TemplateView {
 	return func(ctx *web.Context) {
 		u := GetLoggedInUser(s, ctx)
 		if (u != nil) {
@@ -75,7 +97,7 @@ func TemplateLoginRequired(s *library.Server, t library.TemplateView) ViewHandle
 	}
 }
 
-func LogoutView(s *library.Server) ViewHandler {
+func LogoutView(s *library.Server) library.TemplateView {
 	return func(ctx *web.Context) {
 		session, _ := s.GetMainSession(ctx)
 		session.Values[LoginSessionMapKey] = -1
