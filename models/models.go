@@ -4,6 +4,7 @@ import (
 	"airdispat.ch/common"
 	"bytes"
 	"crypto/ecdsa"
+	"encoding/hex"
 )
 
 type User struct {
@@ -20,16 +21,21 @@ func CreateUser(username string, password string) *User {
 	key, _ := common.CreateKey()
 	buf := new(bytes.Buffer)
 	common.GobEncodeKey(key, buf)
+
 	newUser := &User {
 		Username: username,
-		Password: password,
+		Password: HashPassword(password),
 		Keypair: buf.Bytes(),
 	}
 	return newUser
 }
 
 func (user *User) VerifyPassword(password string) bool {
-	return (user.Password == password)
+	return (user.Password == HashPassword(password))
+}
+
+func HashPassword(password string) string {
+	return hex.EncodeToString(common.HashSHA(nil, []byte(password)))
 }
 
 type Mailbox struct {}
