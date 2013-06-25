@@ -1,1 +1,1 @@
-web: editor
+web: dispatcher
