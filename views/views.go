@@ -4,14 +4,21 @@ import (
 	"github.com/hoisie/web"
 	"dispatcher/models"
 	"dispatcher/library"
-	"airdispat.ch/common"
-	"bytes"
+	"fmt"
 )
 
 type ViewHandler func(ctx *web.Context)
 
 func CreateMessage(s *library.Server) library.TemplateView {
 	return func(ctx *web.Context) {
+		to_address := ctx.Params["to_address"]
+		fmt.Println("New Message To", to_address)
+		switch ctx.Params["mes_type"] {
+			case "_blog":
+				fmt.Println("Blog Post")
+			default:
+				fmt.Println("Unknown Post Type")
+		}
 		ctx.Redirect(303, "/")
 	}
 }
@@ -25,13 +32,13 @@ func Dashboard(s *library.Server) library.TemplateView {
 const LoginSessionMapKey = "user_id"
 
 func LoginView(s *library.Server) library.TemplateView {
-
 	return func(ctx *web.Context) {
 		username := ctx.Params["username"]
 		password := ctx.Params["password"]
 
 		var theUsers []*models.User
 		_, err := s.DbMap.Select(&theUsers, "select * from dispatch_users where username='" + username + "'")
+		fmt.Println(err, theUsers)
 		if err == nil {
 			if len(theUsers) > 0 && theUsers[0] != nil {
 				if theUsers[0].VerifyPassword(password) {
@@ -78,10 +85,7 @@ func GetLoggedInUser(s *library.Server, ctx *web.Context) (*models.User) {
 	}
 
 	newUser := user.(*models.User)
-	
-	keys, _ := common.GobDecodeKey(bytes.NewBuffer(newUser.Keypair))
-	newUser.LoadedKey = keys
-	newUser.Address = common.StringAddress(&keys.PublicKey)
+	newUser.Populate()
 
 	return newUser
 }

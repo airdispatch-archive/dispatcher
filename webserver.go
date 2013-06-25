@@ -31,7 +31,58 @@ func main() {
 		CookieAuthKey: []byte("secret-auth"),
 		CookieEncryptKey: []byte("secret-encryption-key"),
 		MainSessionName: "dispatcher-session",
+		Mailserver: "mailserver.airdispat.ch:2048",
 	}
+
+	// Flush the Database
+	if *db_flush {
+		theServer.DbMap.DropTables()
+	}
+
+	// Create the Database
+	if *db_create {
+		// Create Tables
+		err := theServer.DbMap.CreateTablesIfNotExists()
+		if err != nil {
+			fmt.Println("Problem Creating Tables")
+			fmt.Println(err)
+			return
+		}
+
+		// The Tracker
+		fmt.Println("Time to setup the default Trackers")
+
+		for {
+			var t_url, t_address string
+			fmt.Print("Tracker URL (or 'done' to stop): ")
+			fmt.Scanln(&t_url)
+
+			if t_url == "done" {
+				break
+			}
+
+			fmt.Print("Tracker Address: ")
+			fmt.Scanln(&t_address)
+
+			t_full := &models.Tracker{URL: t_url, Address: t_address}
+			theServer.DbMap.Insert(t_full)
+		}
+		// Create the User
+		fmt.Println("Let's create the first user.")
+
+		var username, password string
+
+		fmt.Print("Username (no spaces): ")
+		fmt.Scanln(&username)
+
+		fmt.Print("Password: ")
+		fmt.Scanln(&password)
+
+		newUser := models.CreateUser(username, password, theServer)
+		fmt.Println("New User Address", newUser.Address)
+		theServer.DbMap.Insert(newUser)
+	}
+
 	theServer.ConfigServer()
 	defineRoutes(theServer)
 
@@ -66,32 +117,6 @@ func connectToDatabase() (*gorp.DbMap) {
 
 	dbmap.AddTableWithName(models.Tracker{}, "dispatch_trackers").SetKeys(true, "Id")
 	dbmap.AddTableWithName(models.User{}, "dispatch_users").SetKeys(true, "Id")
-
-	if *db_flush {
-		dbmap.DropTables()
-	}
-
-	if *db_create {
-		err = dbmap.CreateTablesIfNotExists()
-		if err != nil {
-			fmt.Println("Problem Creating Tables")
-			fmt.Println(err)
-			return nil
-		}
-
-		fmt.Println("Let's create the first user.")
-
-		var username, password string
-
-		fmt.Print("Username (no spaces): ")
-		fmt.Scanln(&username)
-
-		fmt.Print("Password: ")
-		fmt.Scanln(&password)
-
-		newUser := models.CreateUser(username, password)
-		dbmap.Insert(newUser)
-	}
 
 	return dbmap
 }

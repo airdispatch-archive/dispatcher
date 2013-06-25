@@ -25,6 +25,7 @@ type Server struct {
 	CookieEncryptKey []byte
 	MainSessionName string
 	sessionStore *sessions.CookieStore
+	Mailserver string
 }
 
 func (s *Server) ConfigServer() {
