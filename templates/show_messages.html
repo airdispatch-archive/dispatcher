@@ -8,7 +8,7 @@
 	{{ $time := .TimeFunction }}
 	{{ range .Messages }}
 		<div class="message">
-			<a href="#">
+			<a href="/message/{{ .Id }}">
 				<div class="row">
 						<div class="span2">
 							{{ if .ToAddress }}

@@ -105,6 +105,13 @@ type Stream struct {
 	LinkedObject string
 }
 
+type Subscription struct {
+	Id int64
+	User int64
+	SubscribedAddress string
+	Note string
+}
+
 type Attatchment struct {}
 
 type Tracker struct { // dispatch_tracker

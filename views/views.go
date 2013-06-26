@@ -88,6 +88,12 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 	}
 }
 
+func ShowMessage(s *library.Server) library.WildcardTemplateView {
+	return func(ctx *web.Context, val string) {
+		s.WriteTemplateToContext("message.html", ctx, nil)
+	}
+}
+
 func Dashboard(s *library.Server) library.TemplateView {
 	return func(ctx *web.Context) {
 		s.WriteTemplateToContext("dashboard.html", ctx, GetLoggedInUser(s, ctx))
