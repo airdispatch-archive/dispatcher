@@ -14,6 +14,7 @@ type User struct { // dispatch_userg
 	Salt string
 	Username string
 	Password string
+	FullName string
 	Keypair []byte
 	Id int64
 	Address string `db:"-"`
@@ -93,10 +94,16 @@ type Message struct {
 	ToAddress string
 	Slug string
 	MessageType string
+	Timestamp int64
 	Content []byte
 }
 
-type Stream struct {}
+type Stream struct {
+	Id int64
+	Message string
+	LinkedUser string
+	LinkedObject string
+}
 
 type Attatchment struct {}
 

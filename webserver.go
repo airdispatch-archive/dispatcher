@@ -70,7 +70,7 @@ func main() {
 		// Create the User
 		fmt.Println("Let's create the first user.")
 
-		var username, password string
+		var username, password, first, last string
 
 		fmt.Print("Username (no spaces): ")
 		fmt.Scanln(&username)
@@ -78,7 +78,14 @@ func main() {
 		fmt.Print("Password: ")
 		fmt.Scanln(&password)
 
+		fmt.Print("First Name: ")
+		fmt.Scanln(&first)
+		fmt.Print("Last Name: ")
+		fmt.Scanln(&last)
+
 		newUser := models.CreateUser(username, password, theServer)
+		newUser.FullName = (first + " " + last)
+
 		fmt.Println("New User Address", newUser.Address)
 		theServer.DbMap.Insert(newUser)
 	}
@@ -94,6 +101,9 @@ func defineRoutes(s *library.Server) {
 
 	s.WebServer.Get("/compose", views.TemplateLoginRequired(s, s.DisplayTemplate("compose.html")))
 	s.WebServer.Post("/compose", views.TemplateLoginRequired(s, views.CreateMessage(s)))
+
+	s.WebServer.Get("/inbox", views.ShowFolder(s, "Inbox"))
+	s.WebServer.Get("/sent", views.ShowFolder(s, "Sent Messages"))
 
 	s.WebServer.Get("/login", s.DisplayTemplate("login.html"))
 	s.WebServer.Post("/login", views.LoginView(s))
@@ -115,6 +125,7 @@ func connectToDatabase() (*gorp.DbMap) {
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
 	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "editor:", log.Lmicroseconds)) 
 
+	dbmap.AddTableWithName(models.Message{}, "dispatch_messages").SetKeys(true, "Id")
 	dbmap.AddTableWithName(models.Tracker{}, "dispatch_trackers").SetKeys(true, "Id")
 	dbmap.AddTableWithName(models.User{}, "dispatch_users").SetKeys(true, "Id")
 

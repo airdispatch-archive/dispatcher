@@ -1,25 +1,90 @@
 package views
 
 import (
+	"code.google.com/p/goprotobuf/proto"
 	"github.com/hoisie/web"
 	"dispatcher/models"
 	"dispatcher/library"
+	"airdispat.ch/common"
+	"airdispat.ch/airdispatch"
+	"encoding/hex"
+	"time"
 	"fmt"
 )
 
 type ViewHandler func(ctx *web.Context)
+var no_encryption string = "none"
+var blog_title string = "blog/title"
+var blog_content string = "blog/content"
+var blog_author string = "blog/author"
+var blog_date string = "blog/date"
 
 func CreateMessage(s *library.Server) library.TemplateView {
 	return func(ctx *web.Context) {
 		to_address := ctx.Params["to_address"]
+		sending_user := GetLoggedInUser(s, ctx)
 		fmt.Println("New Message To", to_address)
 		switch ctx.Params["mes_type"] {
 			case "_blog":
 				fmt.Println("Blog Post")
+				newMessage := &models.Message{}
+				newMessage.ToAddress = ""
+				newMessage.Slug = hex.EncodeToString(common.HashSHA(nil, []byte(ctx.Params["blog_title"])))
+				newMessage.MessageType = "_blog"
+
+				title := &airdispatch.MailData_DataType{
+					TypeName: &blog_title,
+					Payload: []byte(ctx.Params["blog_title"]),
+					Encryption: &no_encryption,
+				}
+
+				content := &airdispatch.MailData_DataType{
+					TypeName: &blog_content,
+					Payload: []byte(ctx.Params["blog_content"]),
+					Encryption: &no_encryption,
+				}
+
+				author := &airdispatch.MailData_DataType{
+					TypeName: &blog_author,
+					Payload: []byte(sending_user.FullName),
+					Encryption: &no_encryption,
+				}
+
+				date := &airdispatch.MailData_DataType{
+					TypeName: &blog_date,
+					Payload: []byte(time.Now().String()),
+					Encryption: &no_encryption,
+				}
+
+				theData := &airdispatch.MailData{
+					Payload: []*airdispatch.MailData_DataType{title, content, author, date},
+				}
+
+				byteData, _ := proto.Marshal(theData)
+				newMessage.Content = byteData
+				newMessage.Timestamp = time.Now().Unix()
+
+				s.DbMap.Insert(newMessage)
 			default:
 				fmt.Println("Unknown Post Type")
 		}
 		ctx.Redirect(303, "/")
+	}
+}
+
+func ShowFolder(s *library.Server, folderName string) library.TemplateView {
+	return func(ctx *web.Context) {
+		context := make(map[string]interface{})
+		context["FolderName"] = folderName
+
+		context["TimeFunction"] = TimestampToString()
+
+		var theMessages []*models.Message
+		s.DbMap.Select(&theMessages, "select * from dispatch_messages")
+
+		context["Messages"] = theMessages
+
+		s.WriteTemplateToContext("show_messages.html", ctx, context)
 	}
 }
 
@@ -107,5 +172,14 @@ func LogoutView(s *library.Server) library.TemplateView {
 		session.Values[LoginSessionMapKey] = -1
 		library.SaveSessionWithContext(session, ctx)
 		ctx.Redirect(303, "/login")
+	}
+}
+
+type TemplateTag func(interface{}) interface{}
+
+func TimestampToString() TemplateTag {
+	return func(arg interface{}) interface{} {
+		timestamp := arg.(int64)
+		return time.Unix(timestamp, 0).Format("Jan 2, 2006 at 3:04pm")
 	}
 }

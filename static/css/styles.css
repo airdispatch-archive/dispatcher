@@ -10,3 +10,15 @@ body {
 .center-align {
 	text-align: center;
 }
+
+hr {
+	margin: 0;
+}
+
+.message {
+	padding: 5px;
+}
+
+.message:hover {
+	background-color: #eee;
+}

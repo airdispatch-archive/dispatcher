@@ -1,0 +1,30 @@
+{{ define "head" }}Dispatcher :: {{ .FolderName }}{{ end }}
+
+{{ define "title" }}{{ .FolderName }}{{ end }}
+
+{{ define "shownav" }}{{ end }}
+
+{{ define "body" }}
+	{{ $time := .TimeFunction }}
+	{{ range .Messages }}
+		<div class="message">
+			<a href="#">
+				<div class="row">
+						<div class="span2">
+							{{ if .ToAddress }}
+								{{ .ToAddress }}
+							{{ else }}
+								<em>Public Message</em>
+							{{ end }}
+						</div>
+						<div class="span3 offset4">
+							{{ call $time .Timestamp }}
+						</div>
+					</div>
+			</a>
+		</div>
+		<hr/>
+	{{ else }}
+		<p>No messages in this folder.</p>
+	{{ end }}
+{{ end }}
