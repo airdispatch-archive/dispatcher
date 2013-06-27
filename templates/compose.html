@@ -9,7 +9,7 @@
 		<div class="control-group">
 			<label class="control-label" for="to_address">To Address</label>
 			<div class="controls">
-				<input type="text" id="to_address" placeholder="Leave blank for public mail..." class="span5" name="to_address">
+				<input type="text" id="to_address" placeholder="Leave blank for public mail..." class="span5" name="to_address" value="{{ .Initial.ToAddress }}">
 			</div>
 		</div>
 		<div class="control-group">
@@ -23,13 +23,13 @@
 		<div class="control-group">
 			<label class="control-label" for="blog_title">Blog Entry Title</label>
 			<div class="controls">
-				<input type="text" id="blog_title" class="span5" name="blog_title">
+				<input type="text" id="blog_title" class="span5" name="blog_title" value="{{ .Initial.Title }}">
 			</div>
 		</div>
 		<div class="control-group">
 			<label class="control-label" for="blog_content">Content</label>
 			<div class="controls">
-				<textarea id="blog_content" class="span7" style="height: 500px" name="blog_content"></textarea>
+				<textarea id="blog_content" class="span7" style="height: 500px" name="blog_content">{{ .Initial.Content }}</textarea>
 			</div>
 		</div>
 		<div class="form-actions">

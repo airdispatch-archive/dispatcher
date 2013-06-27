@@ -90,7 +90,8 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 
 func ShowMessage(s *library.Server) library.WildcardTemplateView {
 	return func(ctx *web.Context, val string) {
-		s.WriteTemplateToContext("message.html", ctx, nil)
+		theMessage, _ := s.DbMap.Get(models.Message{}, val)
+		s.WriteTemplateToContext("message.html", ctx, theMessage)
 	}
 }
 
