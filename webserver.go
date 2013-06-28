@@ -5,8 +5,6 @@ import (
 	"os"
 	"flag"
 	"fmt"
-	"log"
-	"github.com/coopernurse/gorp"
 	"dispatcher/library"
 	"dispatcher/views"
 	"dispatcher/models"
@@ -25,13 +23,20 @@ func main() {
 		temp_port = *flag_port
 	}
 
+	dbMap, err := models.ConnectToDB()
+	if err != nil {
+		fmt.Println("Can't Connect to DB")
+		fmt.Println("err")
+		return
+	}
+
 	theServer := &library.Server {
 		Port: temp_port,
-		DbMap: connectToDatabase(),
+		DbMap: dbMap,
 		CookieAuthKey: []byte("secret-auth"),
 		CookieEncryptKey: []byte("secret-encryption-key"),
 		MainSessionName: "dispatcher-session",
-		Mailserver: "mailserver.airdispat.ch:2048",
+		Mailserver: "localhost:2048",
 	}
 
 	// Flush the Database
@@ -102,33 +107,15 @@ func defineRoutes(s *library.Server) {
 	s.WebServer.Get("/compose", views.TemplateLoginRequired(s, s.DisplayTemplate("compose.html")))
 	s.WebServer.Post("/compose", views.TemplateLoginRequired(s, views.CreateMessage(s)))
 
-	s.WebServer.Get("/inbox", views.ShowFolder(s, "Inbox"))
-	s.WebServer.Get("/sent", views.ShowFolder(s, "Sent Messages"))
+	s.WebServer.Get("/subscribe", views.TemplateLoginRequired(s, s.DisplayTemplate("subscribe.html")))
+	s.WebServer.Post("/subscribe", views.TemplateLoginRequired(s, views.CreateSubscription(s)))
+
+	s.WebServer.Get("/inbox", views.TemplateLoginRequired(s, views.ShowFolder(s, "Inbox")))
+	s.WebServer.Get("/sent", views.TemplateLoginRequired(s, views.ShowFolder(s, "Sent Messages")))
 	s.WebServer.Get("/message/([0-9]*)", views.ShowMessage(s))
 
 	s.WebServer.Get("/login", s.DisplayTemplate("login.html"))
 	s.WebServer.Post("/login", views.LoginView(s))
 
-	s.WebServer.Get("/logout", views.LogoutView(s))
-}
-
-// START APPLICAITON-SPECIFIC CODE
-
-func connectToDatabase() (*gorp.DbMap) {
-	// serverKey, _ := common.CreateKey()
-	db, err := library.OpenDatabaseFromURL(os.Getenv("DATABASE_URL"))
-	if err != nil {
-		fmt.Println("Unable to Connect to DB")
-		fmt.Println(err)
-		return nil
-	}
-
-	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
-	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "editor:", log.Lmicroseconds)) 
-
-	dbmap.AddTableWithName(models.Message{}, "dispatch_messages").SetKeys(true, "Id")
-	dbmap.AddTableWithName(models.Tracker{}, "dispatch_trackers").SetKeys(true, "Id")
-	dbmap.AddTableWithName(models.User{}, "dispatch_users").SetKeys(true, "Id")
-
-	return dbmap
+	s.WebServer.Get("/logout", views.TemplateLoginRequired(s, views.LogoutView(s)))
 }

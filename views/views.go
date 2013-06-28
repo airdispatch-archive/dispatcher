@@ -64,10 +64,26 @@ func CreateMessage(s *library.Server) library.TemplateView {
 				newMessage.Content = byteData
 				newMessage.Timestamp = time.Now().Unix()
 
+				newMessage.SendingUser = sending_user.Id
+
 				s.DbMap.Insert(newMessage)
 			default:
 				fmt.Println("Unknown Post Type")
 		}
+		ctx.Redirect(303, "/")
+	}
+}
+
+func CreateSubscription(s *library.Server) library.TemplateView {
+	return func(ctx *web.Context) {
+		to_address := ctx.Params["to_address"]
+		sending_user := GetLoggedInUser(s, ctx)
+		theSubscription := &models.Subscription {
+			SubscribedAddress: to_address,
+			User: sending_user.Id,
+			Note: "",
+		}
+		s.DbMap.Insert(theSubscription)
 		ctx.Redirect(303, "/")
 	}
 }
@@ -79,10 +95,17 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 
 		context["TimeFunction"] = TimestampToString()
 
-		var theMessages []*models.Message
-		s.DbMap.Select(&theMessages, "select * from dispatch_messages")
 
-		context["Messages"] = theMessages
+		if folderName == "Sent Messages" {
+			var theMessages []*models.Message
+			s.DbMap.Select(&theMessages, "select * from dispatch_messages")
+			context["Messages"] = theMessages
+		} else if folderName == "Inbox" {
+			var theMessages []*models.Alert
+			s.DbMap.Select(&theMessages, "select * from dispatch_alerts")
+			context["Messages"] = theMessages
+		}
+
 
 		s.WriteTemplateToContext("show_messages.html", ctx, context)
 	}
@@ -188,5 +211,11 @@ func TimestampToString() TemplateTag {
 	return func(arg interface{}) interface{} {
 		timestamp := arg.(int64)
 		return time.Unix(timestamp, 0).Format("Jan 2, 2006 at 3:04pm")
+	}
+}
+
+func DisplayAirDispatchAddress(s *library.Server) TemplateTag {
+	return func(arg interface{}) interface{} {
+		return arg
 	}
 }

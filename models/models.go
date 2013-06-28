@@ -1,14 +1,39 @@
 package models
 
 import (
-	"airdispat.ch/common"
 	"airdispat.ch/client/framework"
-	"bytes"
+	"airdispat.ch/common"
+	"dispatcher/library"
+	"github.com/coopernurse/gorp"
 	"crypto/ecdsa"
 	"encoding/hex"
-	"dispatcher/library"
+	"errors"
+	"bytes"
 	"fmt"
+	"log"
+	"os"
 )
+
+func ConnectToDB() (*gorp.DbMap, error) {
+	// serverKey, _ := common.CreateKey()
+	db, err := library.OpenDatabaseFromURL(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		return nil, err
+	}
+
+	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
+	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "editor:", log.Lmicroseconds)) 
+
+	dbmap.AddTableWithName(Message{}, "dispatch_messages").SetKeys(true, "Id")
+	dbmap.AddTableWithName(Alert{}, "dispatch_alerts").SetKeys(true, "Id")
+	dbmap.AddTableWithName(Subscription{}, "dispatch_subscriptions").SetKeys(true, "Id")
+
+	dbmap.AddTableWithName(Tracker{}, "dispatch_trackers").SetKeys(true, "Id")
+
+	dbmap.AddTableWithName(User{}, "dispatch_users").SetKeys(true, "Id")
+
+	return dbmap, nil
+}
 
 type User struct { // dispatch_userg
 	Salt string
@@ -17,8 +42,8 @@ type User struct { // dispatch_userg
 	FullName string
 	Keypair []byte
 	Id int64
-	Address string `db:"-"`
-	LoadedKey *ecdsa.PrivateKey `db:"-"`
+	Address string
+	LoadedKey *ecdsa.PrivateKey `db:"-"` // This field is transient
 }
 
 func (u *User) Populate() error {
@@ -51,12 +76,7 @@ func CreateUser(username string, password string, s *library.Server) *User {
 }
 
 func (u  *User) RegisterUserWithTracker(s *library.Server) error {
-	var theTrackers []*Tracker
-	_, err := s.DbMap.Select(&theTrackers, "select * from dispatch_trackers")
-	if err != nil {
-		fmt.Println("SQL Error", err)
-		return err
-	}
+	theTrackers, err := GetTrackerList(s.DbMap)
 
 	c := &framework.Client {}
 	c.Populate(u.LoadedKey)
@@ -79,6 +99,31 @@ func (u  *User) RegisterUserWithTracker(s *library.Server) error {
 	return nil
 }
 
+func GetTrackerList(dbMap *gorp.DbMap) ([]*Tracker, error) {
+	var theTrackers []*Tracker
+	_, err := dbMap.Select(&theTrackers, "select * from dispatch_trackers")
+	if err != nil {
+		fmt.Println("SQL Error", err)
+		return nil, err
+	}
+	return theTrackers, nil
+}
+
+func GetUserWithAddress(dbMap *gorp.DbMap, address string) (*User, error) {
+	var theUsers []*User
+	_, err := dbMap.Select(&theUsers, "select * from dispatch_users where address=?", address)
+	if err != nil {
+		fmt.Println("SQL Error")
+		fmt.Println(err)
+		return nil, err
+	}
+
+	if len(theUsers) != 1 {
+		return nil, errors.New("Incorrect Number of Rows Returned")
+	}
+	return theUsers[0], nil
+}
+
 func (user *User) VerifyPassword(password string) bool {
 	return (user.Password == HashPassword(password))
 }
@@ -89,13 +134,30 @@ func HashPassword(password string) string {
 
 type Mailbox struct {}
 
+type Contact struct {
+	Id int64
+	User int64
+	Address string
+	Name string
+}
+
 type Message struct {
 	Id int64
 	ToAddress string
 	Slug string
 	MessageType string
 	Timestamp int64
+	SendingUser int64
 	Content []byte
+}
+
+type Alert struct {
+	Id int64
+	Content []byte
+	ToAddress string
+	Timestamp int64
+	Folder string
+	ToUser int64
 }
 
 type Stream struct {

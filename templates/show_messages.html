@@ -10,17 +10,17 @@
 		<div class="message">
 			<a href="/message/{{ .Id }}">
 				<div class="row">
-						<div class="span2">
-							{{ if .ToAddress }}
-								{{ .ToAddress }}
-							{{ else }}
-								<em>Public Message</em>
-							{{ end }}
-						</div>
-						<div class="span3 offset4">
-							{{ call $time .Timestamp }}
-						</div>
+					<div class="span2">
+						{{ if .ToAddress }}
+							{{ .ToAddress }}
+						{{ else }}
+							<em>Public Message</em>
+						{{ end }}
 					</div>
+					<div class="span3 offset4">
+						{{ call $time .Timestamp }}
+					</div>
+				</div>
 			</a>
 		</div>
 		<hr/>

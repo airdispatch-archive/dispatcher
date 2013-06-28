@@ -3,6 +3,7 @@ package library
 import (
 	"errors"
 	"database/sql"
+	_ "github.com/lib/pq"
 	"github.com/hoisie/web"
 	"strings"
 	"os"

@@ -1,0 +1,21 @@
+{{ define "head" }}Dispatcher :: Subscribe{{ end }}
+
+{{ define "title" }}Subscribe to Newsletter{{ end }}
+
+{{ define "shownav" }}{{ end }}
+
+{{ define "body" }}
+	<p>This form allows you to subscribe to an airdispatch user.</p>
+	<br/>
+	<form method="post" class="form-horizontal">
+		<div class="control-group">
+			<label class="control-label" for="to_address">Subscription Address</label>
+			<div class="controls">
+				<input type="text" id="to_address" class="span5" name="to_address" value="{{ .Initial.ToAddress }}">
+			</div>
+		</div>
+		<div class="form-actions">
+			<input type="submit" value="Confirm Subscription" class="btn btn-warning"/>
+		</div>
+	</form>
+{{ end }}
