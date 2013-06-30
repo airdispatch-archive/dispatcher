@@ -158,17 +158,39 @@ func (myServer) RetrieveMessage(id string) ([]byte, []string) {
 	type queryResult struct {
 		Content []byte
 		ToAddress string
+		Keypair []byte
+		Address string
 	}
 
-	query := "select m.content, m.toaddress " 
-	query += "from dispatch_messages m "
-	query += "where m.slug = ? "
+	query := "select m.content, m.toaddress, u.keypair, u.address " 
+	query += "from dispatch_messages m, dispatch_users u "
+	query += "where m.slug = '" + id + "' and m.sendinguser = u.id"
 	query += "limit 1 "
 
 	var results []*queryResult
-	dbMap.Select(results, query, id)
+	dbMap.Select(&results, query)
 
-	return results[0].Content, strings.Split(results[0].ToAddress, ",")
+	if len(results) != 1 {
+		fmt.Println("Incorrect Number of Messages Returned")
+		return nil, nil
+	}
+
+	keys, err := common.GobDecodeKey(bytes.NewBuffer(results[0].Keypair))
+	if err != nil {
+		fmt.Println("Error Getting Keys")
+		return nil, nil
+	}
+
+	newMail := &airdispatch.Mail {
+		FromAddress: &results[0].Address,
+		Data: results[0].Content,
+		Encryption: &noEncryption,
+	}
+	data, _ := proto.Marshal(newMail)
+
+	toSend, _ := common.CreateAirdispatchMessage(data, keys, common.MAIL_MESSAGE)
+
+	return toSend, strings.Split(results[0].ToAddress, ",")
 }
 
 func (m myServer) RetrieveInbox(addr string, since uint64) [][]byte {
@@ -178,12 +200,12 @@ func (m myServer) RetrieveInbox(addr string, since uint64) [][]byte {
 
 	query := "select m.content " 
 	query += "from dispatch_alerts m, dispatch_users u "
-	query += "where m.touser = u.id and toaddress='' and timestamp>? "
-	query += "and u.address=? "
+	query += "where m.touser = u.id and toaddress='' and timestamp>" + strconv.FormatUint(since, 10) + " "
+	query += "and u.address='" + addr + "' "
 	query += "order by m.timestamp desc "
 
 	var results []*queryResult
-	dbMap.Select(results, query, since, addr)
+	dbMap.Select(&results, query)
 
 	output := make([][]byte, len(results))
 
