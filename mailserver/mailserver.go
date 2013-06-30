@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
+	"bytes"
 )
 
 // Configuration Varables
@@ -194,31 +195,45 @@ func (m myServer) RetrieveInbox(addr string, since uint64) [][]byte {
 }
 
 func (m myServer) RetrievePublic(fromAddr string, since uint64) [][]byte {
-	fmt.Println("Hello")
-
 	type queryResult struct {
 		Content []byte
+		Keypair []byte
 	}
 
-	query := "select m.content " 
+	query := "select m.content, u.keypair " 
 	query += "from dispatch_messages m, dispatch_users u "
 	query += "where m.sendinguser = u.id and toaddress='' and timestamp > " + strconv.FormatUint(since, 10) + " "
 	query += "and u.address = '" + fromAddr + "' "
 	query += "order by m.timestamp desc"
 
 	var results []*queryResult
-	_, err := dbMap.Select(&results, query) //, since, fromAddr)
-	fmt.Println(err)
+	dbMap.Select(&results, query)
 
 	output := make([][]byte, len(results))
+
+	var keys *ecdsa.PrivateKey = nil
+
 	for i, v := range(results) {
+		if keys == nil {
+			var err error
+			keys, err = common.GobDecodeKey(bytes.NewBuffer(v.Keypair))
+			if err != nil {
+				fmt.Println("Error Getting Keys")
+				return nil
+			}
+		}
+
 		newMail := &airdispatch.Mail {
 			FromAddress: &fromAddr,
 			Data: v.Content,
 			Encryption: &noEncryption,
 		}
 		data, _ := proto.Marshal(newMail)
-		output[i] = data
+
+		toSend, _ := common.CreateAirdispatchMessage(data, keys, common.MAIL_MESSAGE)
+
+		// Remove the Prefix
+		output[i] = toSend[6:]
 	}
 
 	return output
