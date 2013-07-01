@@ -5,5 +5,8 @@
 {{ define "shownav" }}{{ end }}
 
 {{ define "body" }}
-	{{ .Address }}
+	<!-- Toolbar -->
+	<div class="toolbar">
+		<span class="mini">Current Address: <strong>{{ .Address }}</strong></span>
+	</div>
 {{ end }}

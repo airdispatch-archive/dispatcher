@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"errors"
 )
 
 type ViewHandler func(ctx *web.Context)
@@ -28,45 +29,17 @@ func CreateMessage(s *library.Server) library.TemplateView {
 		contentRegex = regexp.MustCompile(`^content\[([0-9]+)\]\[([0-9]+)\]`)
 	}
 	return func(ctx *web.Context) {
+		defer ctx.Redirect(303, "/")
+
 		to_address := ctx.Params["to_address"]
 		sending_user := GetLoggedInUser(s, ctx)
 
-		if len(ctx.Params) < 2 {
-			fmt.Println("Error")
-			ctx.Redirect(303, "/")
+		byteData, err := ContextToDataTypeBytes(ctx)
+		if err != nil {
+			fmt.Println("Cannot convert context data.")
+			fmt.Println(err)
 			return
 		}
-
-		content_types := make([]*airdispatch.MailData_DataType, (len(ctx.Params) - 1) / 2)
-
-		for key, value := range(ctx.Params) {
-			if key != "to_address" {
-				// content[index][type]
-				i := contentRegex.FindAllStringSubmatch(key, -1)[0]
-
-				typeIndex, _ := strconv.ParseInt(i[1], 10, 0)
-
-				theData := content_types[typeIndex]
-				if theData == nil {
-					theData = &airdispatch.MailData_DataType {}
-				}
-
-				if i[2] == "0" {
-					theType := ctx.Params[key]
-					theData.TypeName = &theType
-				} else if i[2] == "1" {
-					theData.Payload = []byte(value)
-				}
-
-				content_types[typeIndex] = theData
-			}
-		}
-
-		theData := &airdispatch.MailData{
-			Payload: content_types,
-		}
-
-		byteData, _ := proto.Marshal(theData)
 
 		newMessage := &models.Message{}
 		newMessage.Content = byteData
@@ -76,9 +49,69 @@ func CreateMessage(s *library.Server) library.TemplateView {
 		newMessage.Slug = hex.EncodeToString(common.HashSHA(nil, byteData))
 
 		s.DbMap.Insert(newMessage)
-
-		ctx.Redirect(303, "/")
 	}
+}
+
+func UpdateMessage(s *library.Server) library.WildcardTemplateView {
+	return func(ctx *web.Context, val string) {
+		defer ctx.Redirect(303, "/")
+
+		theMessage, _ := s.DbMap.Get(models.Message{}, val)
+		byteData, err := ContextToDataTypeBytes(ctx)
+		if err != nil {
+			fmt.Println("Cannot convert context data.")
+			fmt.Println(err)
+			return
+		}
+
+		theMessage.(*models.Message).Content = byteData
+		s.DbMap.Update(theMessage)
+	}
+}
+
+func ContextToDataTypeBytes(ctx *web.Context) ([]byte, error) {
+	if len(ctx.Params) <= 2 {
+		return nil, errors.New("The Context doesn't have enough Fields")
+	}
+
+	content_types := make([]*airdispatch.MailData_DataType, (len(ctx.Params) - 1) / 2)
+
+	for key, value := range(ctx.Params) {
+		if key != "to_address" {
+			// content[index][type]
+			i := contentRegex.FindAllStringSubmatch(key, -1)[0]
+
+			typeIndex, err := strconv.ParseInt(i[1], 10, 0)
+			if err != nil {
+				return nil, errors.New("The Context doesn't have correct field formats.")
+			}
+
+			theData := content_types[typeIndex]
+			if theData == nil {
+				theData = &airdispatch.MailData_DataType {}
+			}
+
+			if i[2] == "0" {
+				theType := ctx.Params[key]
+				theData.TypeName = &theType
+			} else if i[2] == "1" {
+				theData.Payload = []byte(value)
+			}
+
+			content_types[typeIndex] = theData
+		}
+	}
+
+	theData := &airdispatch.MailData{
+		Payload: content_types,
+	}
+
+	byteData, err := proto.Marshal(theData)
+	if err != nil {
+		return nil, err
+	}
+
+	return byteData, nil
 }
 
 func DisplayEditMessage(s *library.Server) library.WildcardTemplateView {
@@ -116,7 +149,7 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 
 		if folderName == "Sent Messages" {
 			var theMessages []*models.Message
-			s.DbMap.Select(&theMessages, "select * from dispatch_messages")
+			s.DbMap.Select(&theMessages, "select * from dispatch_messages order by timestamp DESC")
 			context["Messages"] = theMessages
 		} else if folderName == "Inbox" {
 			var theMessages []*models.Alert

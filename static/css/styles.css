@@ -30,6 +30,10 @@ hr {
 	background-color: #eee;
 }
 
+.toolbar .mini {
+	font-size: 12px;
+}
+
 div.btn a {
 	color: #333;
 }
