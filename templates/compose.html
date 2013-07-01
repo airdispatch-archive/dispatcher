@@ -5,32 +5,52 @@
 {{ define "shownav" }}{{ end }}
 
 {{ define "body" }}
-	<form method="post" class="form-horizontal">
-		<div class="control-group">
-			<label class="control-label" for="to_address">To Address</label>
-			<div class="controls">
-				<input type="text" id="to_address" placeholder="Leave blank for public mail..." class="span5" name="to_address" value="{{ .Initial.ToAddress }}">
-			</div>
+	<form method="post" class="form">
+		<label class="control-label" for="to_address">To Address:</label>
+		<input type="text" id="to_address" placeholder="Leave blank for public mail..." class="span5" name="to_address" value="{{ .Initial.ToAddress }}">
+		
+		<div class="controls controls-row">
+              <div class="btn-group">
+                <button class="btn btn-success btn-add">Add Field</button>
+                <button class="btn btn-success dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
+                <ul class="dropdown-menu btn-menu">
+                  <li><a href="#" data-add="airdispat.ch/content" data-disabled="false">Textarea</a></li>
+                  <li class="divider"></li>
+                  <li class="dropdown-submenu">
+                  	<a tabindex="-1" href="#">Mail</a>
+                  	<ul class="dropdown-menu">
+	                  <li><a href="#" data-add="mail">Mail Fieldset</a></li>
+	                  <li class="divider"></li>
+	                  <li><a href="#" data-add="mail/subject">Mail Subject</a></li>
+	                  <li><a href="#" data-add="mail/content">Mail Content</a></li>
+                  	</ul>
+                  <li class="dropdown-submenu">
+                  	<a tabindex="-1" href="#">Blog</a>
+                  	<ul class="dropdown-menu">
+	                  <li><a href="#" data-add="blog">Blog Fieldset</a></li>
+	                  <li class="divider"></li>
+	                  <li><a href="#" data-add="blog/author">Blog Author</a></li>
+	                  <li><a href="#" data-add="blog/title">Blog Title</a></li>
+	                  <li><a href="#" data-add="blog/content">Blog Content</a></li>
+	                  <li><a href="#" data-add="blog/date">Blog Date</a></li>
+                  	</ul>
+                  </li>
+                </ul>
+              </div><!-- /btn-group -->
+
+            <button class="btn btn-warning btn-mini btn-toggle"><i class="icon-unchecked toggle-icon"></i> Toggle Advanced Editing</button>
 		</div>
-		<div class="control-group">
-			<label class="control-label" for="mes_type">Message Type</label>
-			<div class="controls">
-				<select id="mes_type" name="mes_type">
-					<option value="_blog">Blog Post</option>
-				</select>
-			</div>
-		</div>
-		<div class="control-group">
-			<label class="control-label" for="blog_title">Blog Entry Title</label>
-			<div class="controls">
-				<input type="text" id="blog_title" class="span5" name="blog_title" value="{{ .Initial.Title }}">
-			</div>
-		</div>
-		<div class="control-group">
-			<label class="control-label" for="blog_content">Content</label>
-			<div class="controls">
-				<textarea id="blog_content" class="span7" style="height: 500px" name="blog_content">{{ .Initial.Content }}</textarea>
-			</div>
+
+		<br/>
+
+		<div class="all-controls">
+			{{ range $i, $v := .Initial.Content }}
+				<div class="controls controls-row content-control">
+					<input type="text" id="{{ $v.TypeName }}" class="span3 control-name" name="content[{{ $i }}][0]" value="{{ $v.TypeName }}" readonly='readonly'>
+					<input type="text" id="{{ $v.TypeName }}" class="span5" name="content[{{ $i }}][1]" value="{{ $v.Payload }}">
+					<button class="btn btn-danger span1 btn-remove"><i class="icon-remove"></i></button>
+				</div>
+			{{ end }}
 		</div>
 		<div class="form-actions">
 			<input type="submit" value="Send" class="btn btn-warning"/>

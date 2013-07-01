@@ -10,6 +10,8 @@ import (
 	"encoding/hex"
 	"time"
 	"fmt"
+	"regexp"
+	"strconv"
 )
 
 type ViewHandler func(ctx *web.Context)
@@ -19,58 +21,74 @@ var blog_content string = "blog/content"
 var blog_author string = "blog/author"
 var blog_date string = "blog/date"
 
+var contentRegex *regexp.Regexp = nil
+
 func CreateMessage(s *library.Server) library.TemplateView {
+	if contentRegex == nil {
+		contentRegex = regexp.MustCompile(`^content\[([0-9]+)\]\[([0-9]+)\]`)
+	}
 	return func(ctx *web.Context) {
 		to_address := ctx.Params["to_address"]
 		sending_user := GetLoggedInUser(s, ctx)
-		fmt.Println("New Message To", to_address)
-		switch ctx.Params["mes_type"] {
-			case "_blog":
-				fmt.Println("Blog Post")
-				newMessage := &models.Message{}
-				newMessage.ToAddress = ""
-				newMessage.Slug = hex.EncodeToString(common.HashSHA(nil, []byte(ctx.Params["blog_title"])))
-				newMessage.MessageType = "_blog"
 
-				title := &airdispatch.MailData_DataType{
-					TypeName: &blog_title,
-					Payload: []byte(ctx.Params["blog_title"]),
-					Encryption: &no_encryption,
-				}
-
-				content := &airdispatch.MailData_DataType{
-					TypeName: &blog_content,
-					Payload: []byte(ctx.Params["blog_content"]),
-					Encryption: &no_encryption,
-				}
-
-				author := &airdispatch.MailData_DataType{
-					TypeName: &blog_author,
-					Payload: []byte(sending_user.FullName),
-					Encryption: &no_encryption,
-				}
-
-				date := &airdispatch.MailData_DataType{
-					TypeName: &blog_date,
-					Payload: []byte(time.Now().String()),
-					Encryption: &no_encryption,
-				}
-
-				theData := &airdispatch.MailData{
-					Payload: []*airdispatch.MailData_DataType{title, content, author, date},
-				}
-
-				byteData, _ := proto.Marshal(theData)
-				newMessage.Content = byteData
-				newMessage.Timestamp = time.Now().Unix()
-
-				newMessage.SendingUser = sending_user.Id
-
-				s.DbMap.Insert(newMessage)
-			default:
-				fmt.Println("Unknown Post Type")
+		if len(ctx.Params) < 2 {
+			fmt.Println("Error")
+			ctx.Redirect(303, "/")
+			return
 		}
+
+		content_types := make([]*airdispatch.MailData_DataType, (len(ctx.Params) - 1) / 2)
+
+		for key, value := range(ctx.Params) {
+			if key != "to_address" {
+				// content[index][type]
+				i := contentRegex.FindAllStringSubmatch(key, -1)[0]
+
+				typeIndex, _ := strconv.ParseInt(i[1], 10, 0)
+
+				theData := content_types[typeIndex]
+				if theData == nil {
+					theData = &airdispatch.MailData_DataType {}
+				}
+
+				if i[2] == "0" {
+					theType := ctx.Params[key]
+					theData.TypeName = &theType
+				} else if i[2] == "1" {
+					theData.Payload = []byte(value)
+				}
+
+				content_types[typeIndex] = theData
+			}
+		}
+
+		theData := &airdispatch.MailData{
+			Payload: content_types,
+		}
+
+		byteData, _ := proto.Marshal(theData)
+
+		newMessage := &models.Message{}
+		newMessage.Content = byteData
+		newMessage.Timestamp = time.Now().Unix()
+		newMessage.SendingUser = sending_user.Id
+		newMessage.ToAddress = to_address
+		newMessage.Slug = hex.EncodeToString(common.HashSHA(nil, byteData))
+
+		s.DbMap.Insert(newMessage)
+
 		ctx.Redirect(303, "/")
+	}
+}
+
+func DisplayEditMessage(s *library.Server) library.WildcardTemplateView {
+	return func(ctx *web.Context, val string) {
+		theMessage, _ := s.DbMap.Get(models.Message{}, val)
+
+		context := make(map[string]interface{})
+		context["Initial"] = MessageToContext(theMessage.(*models.Message), s)
+
+		s.WriteTemplateToContext("compose.html", ctx, context)
 	}
 }
 
@@ -114,7 +132,11 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 func ShowMessage(s *library.Server) library.WildcardTemplateView {
 	return func(ctx *web.Context, val string) {
 		theMessage, _ := s.DbMap.Get(models.Message{}, val)
-		s.WriteTemplateToContext("message.html", ctx, theMessage)
+
+		context := make(map[string]interface{})
+		context["Message"] = MessageToContext(theMessage.(*models.Message), s)
+
+		s.WriteTemplateToContext("message.html", ctx, context)
 	}
 }
 
@@ -218,4 +240,42 @@ func DisplayAirDispatchAddress(s *library.Server) TemplateTag {
 	return func(arg interface{}) interface{} {
 		return arg
 	}
+}
+
+func MessageToContext(m *models.Message, s *library.Server) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	output["ID"] = m.Id
+	output["MesType"] = m.MessageType
+
+	if m.ToAddress == "" {
+		output["TO"] = "Public"
+		output["ToAddress"] = ""
+		output["Encryption"] = ""
+	} else {
+		output["TO"] = DisplayAirDispatchAddress(s)(m.ToAddress)
+		output["ToAddress"] = output["TO"]
+		output["Encryption"] = "aes/256"
+	}
+
+	theUser, _ := s.DbMap.Get(&models.User{}, m.SendingUser)
+	output["FROM"] = theUser.(*models.User).FullName
+
+	output["Timestamp"] = TimestampToString()(m.Timestamp)
+
+	theData := &airdispatch.MailData{}
+	proto.Unmarshal(m.Content, theData)
+
+	allContent := make([]map[string]interface{}, len(theData.Payload))
+
+	for i, v := range(theData.Payload) {
+		allContent[i] = map[string]interface{} {
+			"TypeName": v.TypeName,
+			"Payload": string(v.Payload),
+		}
+	}
+
+	output["Content"] = allContent
+
+	return output
 }

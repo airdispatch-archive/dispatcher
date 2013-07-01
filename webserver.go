@@ -112,7 +112,9 @@ func defineRoutes(s *library.Server) {
 
 	s.WebServer.Get("/inbox", views.TemplateLoginRequired(s, views.ShowFolder(s, "Inbox")))
 	s.WebServer.Get("/sent", views.TemplateLoginRequired(s, views.ShowFolder(s, "Sent Messages")))
+
 	s.WebServer.Get("/message/([0-9]*)", views.ShowMessage(s))
+	s.WebServer.Get("/message/([0-9]*)/edit", views.DisplayEditMessage(s))
 
 	s.WebServer.Get("/login", s.DisplayTemplate("login.html"))
 	s.WebServer.Post("/login", views.LoginView(s))

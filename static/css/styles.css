@@ -22,3 +22,17 @@ hr {
 .message:hover {
 	background-color: #eee;
 }
+
+.toolbar {
+	padding: 5px;
+	padding-top: 6px;
+	margin-bottom: 10px;
+	background-color: #eee;
+}
+
+div.btn a {
+	color: #333;
+}
+div.btn a:hover {
+	text-decoration: none;
+}

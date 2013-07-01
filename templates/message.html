@@ -5,8 +5,53 @@
 {{ define "shownav" }}{{ end }}
 
 {{ define "body" }}
-	<p>ToAddresses: {{ .ToAddress }}</p>
-	<p>Timestamp: {{ .Timestamp }}</p>
-	<p>Slug: {{ .Slug }}</p>
-	<p>Content: {{ .Content }}</p>
+	<!-- Toolbar -->
+	<div class="toolbar">
+		<div class="btn-group">
+			<div class="btn btn-mini">
+				<a href="/message/{{ .Message.ID }}/edit"><i class="icon-file"></i> Edit</a>
+			</div>
+		</div>
+		<div class="btn-group">
+			<div class="btn btn-mini"><i class="icon-mail-reply"></i> Reply</div>
+			<div class="btn btn-mini"><i class="icon-mail-forward"></i> Forward</div>
+		</div>
+		<div class="btn-group">
+			<div class="btn btn-mini btn-danger"><i class="icon-remove"></i> Delete</div>
+		</div>
+	</div>
+
+	<!-- Message Headers -->
+	<p>Message From: {{ .Message.FROM }}</p>
+	<p>Message To: {{ .Message.TO }}</p>
+	<p>Sent: {{ .Message.Timestamp }}</p>
+
+	<hr/>
+
+	<!-- Content -->
+	{{ range .Message.Content }}
+		<div class="row">
+			<div class="span2">
+				<strong>{{ .TypeName }}</strong>:
+			</div>
+			<div class="span8">
+				{{ .Payload }}
+			</div>
+		</div>
+	{{ else }}
+		<p>No Content</p>
+	{{ end }}
+
+	<br/>
+
+	<!-- Encryption Warning -->
+	{{ if .Message.Encryption }}
+		<div class="alert alert-success">
+			<i class="icon-lock"></i> Encrypted with {{.Message.Encryption}}
+		</div>
+	{{ else }}
+		<div class="alert">
+			<i class="icon-unlock"></i> Unencrypted Message
+		</div>
+	{{ end }}
 {{ end }}
