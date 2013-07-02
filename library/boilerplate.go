@@ -32,7 +32,7 @@ type Server struct {
 func (s *Server) ConfigServer() {
 	s.loadConstants()
 	s.WebServer = web.NewServer()
-	s.loadTemplates(s.getTemplatePath(), "")
+	s.loadTemplates(s.getTemplatePath(), "", true)
 	s.WebServer.Config.StaticDir = s.workingDirectory + "/static"
 	s.sessionStore = sessions.NewCookieStore(s.CookieAuthKey)
 }
@@ -111,7 +111,7 @@ func (s *Server) loadConstants() {
 	s.parsedTemplates = make(map[string]template.Template)
 }
 
-func (s *Server) loadTemplates(folder string, append string) {
+func (s *Server) loadTemplates(folder string, append string, linkWithBase bool) {
 	// Start looking through the original directory
 	dirname := folder + string(filepath.Separator)
 	d, err := os.Open(dirname)
@@ -129,21 +129,36 @@ func (s *Server) loadTemplates(folder string, append string) {
 	for _, fi := range files {
 		if fi.IsDir() {
 			// Call yourself if you find more templates
-			s.loadTemplates(dirname + fi.Name(), append + fi.Name() + string(filepath.Separator))
+			s.loadTemplates(dirname + fi.Name(), append + fi.Name() + string(filepath.Separator), linkWithBase)
 		} else {
 			// Parse templates here
 			if fi.Name() == "base.html" {
 				continue
 			}
 
-			templateName := append + fi.Name()
-			s.parseTemplate(templateName, s.getSpecificTemplatePath(templateName))
+			linkingOption := linkWithBase
+			effectiveName := fi.Name()
+
+			if strings.HasPrefix(fi.Name(), "__nolink ") {
+				linkingOption = false
+				effectiveName = strings.TrimPrefix(fi.Name(), "__nolink ")
+			}
+
+			templateName := append + effectiveName
+			s.parseTemplate(templateName, s.getSpecificTemplatePath(templateName), linkingOption)
 		}
 	}
 }
 
-func (s *Server)parseTemplate(templateName string, filename string) {
-	tmp, err := template.New(templateName).ParseFiles(filename, s.getSpecificTemplatePath("base.html"))
+func (s *Server) parseTemplate(templateName string, filename string, linkWithBase bool) {
+	var tmp *template.Template
+	var err error
+
+	if linkWithBase {
+		tmp, err = template.New(templateName).ParseFiles(filename, s.getSpecificTemplatePath("base.html"))
+	} else {
+		tmp, err = template.New(templateName).ParseFiles(filename)	
+	}
 	if err != nil {
 		fmt.Println("Unable to parse template " + templateName)
 		fmt.Println(err)
@@ -183,14 +198,23 @@ func appendPathComponents(pathComponents ...string) string {
 	return output
 }
 
-func (s *Server) WriteTemplateToContext(templatename string, ctx *web.Context, data interface{}) {
+func (s *Server) WriteTemplateToBuffer(templatename string, individual string, buffer io.Writer, data interface{}) (error) {
 	template, ok := s.parsedTemplates[templatename]
 	if !ok {
-		displayErrorPage(ctx, "Unable to find template. Template: " + templatename)
+		return errors.New("Could Not Find Template")
 	}
-	err := template.ExecuteTemplate(ctx, "base", data)
+	err := template.ExecuteTemplate(buffer, individual, data)
 	if err != nil {
-		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *Server) WriteTemplateToContext(templatename string, ctx *web.Context, data interface{}) {
+	err := s.WriteTemplateToBuffer(templatename, "base", ctx, data)
+	if err != nil {
+		displayErrorPage(ctx, "Unable to load template. Template: " + templatename)
 	}
 }
 

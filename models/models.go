@@ -86,9 +86,10 @@ func (u  *User) RegisterUserWithTracker(s *library.Server) error {
 
 	for _, v := range(theTrackers) {
 		err = c.SendRegistration(v.URL, s.Mailserver)
-		fmt.Println("Tracker Registration", err)
 		if err == nil {
 			success = true
+		} else {
+			fmt.Println("Got a Tracker Error", err)
 		}
 	}
 

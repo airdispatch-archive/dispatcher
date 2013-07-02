@@ -1,7 +1,9 @@
 package views
 
 import (
+	"airdispat.ch/airdispatch"
 	"dispatcher/library"
+	"html/template"
 	"time"
 )
 
@@ -22,6 +24,7 @@ func DisplayAirDispatchAddress(s *library.Server) TemplateTag {
 
 func DisplayMessageTag() TemplateTag {
 	return func(arg interface{}) interface{} {
-		return arg
+		mail := arg.(*airdispatch.Mail)
+		return template.HTML(template.HTMLEscaper(mail) + "<strong>Sup</strong>")
 	}
 }
