@@ -10,7 +10,7 @@ import (
 	"errors"
 	"bytes"
 	"fmt"
-	"log"
+	// "log"
 	"os"
 )
 
@@ -22,7 +22,7 @@ func ConnectToDB() (*gorp.DbMap, error) {
 	}
 
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
-	dbmap.TraceOn("[gorp]", log.New(os.Stdout, "editor:", log.Lmicroseconds)) 
+	// dbmap.TraceOn("[gorp]", log.New(os.Stdout, "editor:", log.Lmicroseconds)) 
 
 	dbmap.AddTableWithName(Message{}, "dispatch_messages").SetKeys(true, "Id")
 	dbmap.AddTableWithName(Alert{}, "dispatch_alerts").SetKeys(true, "Id")

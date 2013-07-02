@@ -7,6 +7,16 @@
 {{ define "body" }}
 	<!-- Toolbar -->
 	<div class="toolbar">
-		<span class="mini">Current Address: <strong>{{ .Address }}</strong></span>
+		<span class="mini">Current Address: <strong>{{ .User.Address }}</strong></span>
 	</div>
+
+	{{ $display := .DisplayTag }}
+
+	{{ range .Messages }}
+		{{ call $display . }}
+		<hr/>
+	{{ else }}
+		<p>Your dashboard is empty. Why don't you go ahead and <a href="/subscribe">subscribe</a> to some of your friends?</p>
+	{{ end }}
+
 {{ end }}

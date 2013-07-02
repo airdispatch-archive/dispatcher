@@ -7,6 +7,7 @@ import (
 	"dispatcher/library"
 	"airdispat.ch/common"
 	"airdispat.ch/airdispatch"
+	cf "airdispat.ch/client/framework"
 	"encoding/hex"
 	"time"
 	"fmt"
@@ -153,7 +154,7 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 			context["Messages"] = theMessages
 		} else if folderName == "Inbox" {
 			var theMessages []*models.Alert
-			s.DbMap.Select(&theMessages, "select * from dispatch_alerts")
+			s.DbMap.Select(&theMessages, "select * from dispatch_alerts order by timestamp DESC")
 			context["Messages"] = theMessages
 		}
 
@@ -175,7 +176,37 @@ func ShowMessage(s *library.Server) library.WildcardTemplateView {
 
 func Dashboard(s *library.Server) library.TemplateView {
 	return func(ctx *web.Context) {
-		s.WriteTemplateToContext("dashboard.html", ctx, GetLoggedInUser(s, ctx))
+		context := make(map[string]interface{})
+
+		theUser := GetLoggedInUser(s, ctx)
+		context["User"] = theUser
+
+		var theMessages []*models.Subscription
+		s.DbMap.Select(&theMessages, "select * from dispatch_subscriptions where \"user\"=" + strconv.FormatInt(theUser.Id, 10))
+
+		theClient := &cf.Client {}
+		theClient.Populate(theUser.LoadedKey)
+
+		trackerList, _ := models.GetTrackerList(s.DbMap)
+		stringTrackers := make([]string, len(trackerList))
+		for i, v := range(trackerList) {
+			stringTrackers[i] = v.URL
+		}
+
+		pastMonth := time.Now().Add(time.Duration(-30) * time.Hour * 24)
+
+		outputMail := make([]*airdispatch.Mail, 0)
+
+		for _, value := range(theMessages) {
+			downloadedMail, err := theClient.DownloadPublicMail(stringTrackers, value.SubscribedAddress, uint64(pastMonth.Unix()))
+			fmt.Println("Found Messages", downloadedMail, "with error", err)
+			outputMail = append(outputMail, downloadedMail...)
+		}
+
+		context["Messages"] = outputMail
+		context["DisplayTag"] = DisplayMessageTag()
+
+		s.WriteTemplateToContext("dashboard.html", ctx, context)
 	}
 }
 
@@ -240,6 +271,17 @@ func GetLoggedInUser(s *library.Server, ctx *web.Context) (*models.User) {
 	return newUser
 }
 
+func WildcardTemplateLoginRequired(s *library.Server, t library.WildcardTemplateView) library.WildcardTemplateView {
+	return func(ctx *web.Context, val string) {
+		u := GetLoggedInUser(s, ctx)
+		if (u != nil) {
+			t(ctx, val)
+		} else {
+			ctx.Redirect(303, "/login")
+		}
+	}
+}
+
 func TemplateLoginRequired(s *library.Server, t library.TemplateView) library.TemplateView {
 	return func(ctx *web.Context) {
 		u := GetLoggedInUser(s, ctx)
@@ -257,21 +299,6 @@ func LogoutView(s *library.Server) library.TemplateView {
 		session.Values[LoginSessionMapKey] = -1
 		library.SaveSessionWithContext(session, ctx)
 		ctx.Redirect(303, "/login")
-	}
-}
-
-type TemplateTag func(interface{}) interface{}
-
-func TimestampToString() TemplateTag {
-	return func(arg interface{}) interface{} {
-		timestamp := arg.(int64)
-		return time.Unix(timestamp, 0).Format("Jan 2, 2006 at 3:04pm")
-	}
-}
-
-func DisplayAirDispatchAddress(s *library.Server) TemplateTag {
-	return func(arg interface{}) interface{} {
-		return arg
 	}
 }
 
