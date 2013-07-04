@@ -33,8 +33,6 @@ func main() {
 	theServer := &library.Server {
 		Port: temp_port,
 		DbMap: dbMap,
-		CookieAuthKey: []byte("secret-auth"),
-		CookieEncryptKey: []byte("secret-encryption-key"),
 		MainSessionName: "dispatcher-session",
 		Mailserver: "localhost:2048",
 	}

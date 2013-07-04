@@ -19,9 +19,11 @@ These steps should create two executable files in your `$GOROOT/bin`: `dispatche
 
 ##### First Run
 
-Before running anything, Dispatcher relies on environmental variables to help connect to the database:
+Before running anything, Dispatcher uses several different environmental variables.
 
   - `DATABASE_URL` - a string with the format `postgres://user@server/db_name` to create the connection to the database.
+  - `COOKIE_AUTH` - a string that represents the secret used to sign the cookies stored.
+  - `COOKIE_ENCRYPTION` - a string that represents the secret used to encrypt the cookies stored.
 
 Upon succesful installation of Dispatcher, you must run `dispatcher -db_create`  to initialize the database (BEFORE running the `mailserver` program). This will walk you through creating the first user and setting up all tracking servers. Optionally, you may specify the `-port` flag to run the program on a port other than 2048.
 

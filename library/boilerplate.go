@@ -109,6 +109,16 @@ func (s *Server) loadConstants() {
 
 	s.templateDirectory = "templates"
 	s.parsedTemplates = make(map[string]template.Template)
+
+	s.CookieAuthKey = []byte(os.Getenv("COOKIE_AUTH"))
+	if os.Getenv("COOKIE_AUTH") == "" {
+		s.CookieAuthKey = []byte("secret-auth")
+	}
+
+	s.CookieEncryptKey = []byte(os.Getenv("COOKIE_ENCRYPTION"))
+	if os.Getenv("COOKIE_ENCRYPTION") == "" {
+		s.CookieEncryptKey = []byte("secret-encryption-key")
+	}
 }
 
 func (s *Server) loadTemplates(folder string, append string, linkWithBase bool) {
