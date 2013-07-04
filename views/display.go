@@ -2,7 +2,7 @@ package views
 
 import (
 	"airdispat.ch/airdispatch"
-	"dispatcher/library"
+	"github.com/airdispatch/dispatcher/library"
 	"html/template"
 	"time"
 	"bytes"

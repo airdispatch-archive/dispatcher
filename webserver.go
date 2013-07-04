@@ -5,9 +5,9 @@ import (
 	"os"
 	"flag"
 	"fmt"
-	"dispatcher/library"
-	"dispatcher/views"
-	"dispatcher/models"
+	"github.com/airdispatch/dispatcher/library"
+	"github.com/airdispatch/dispatcher/views"
+	"github.com/airdispatch/dispatcher/models"
 	// "airdispat.ch/common"
 )
 

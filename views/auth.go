@@ -1,8 +1,8 @@
 package views
 
 import (
-	"dispatcher/models"
-	"dispatcher/library"
+	"github.com/airdispatch/dispatcher/models"
+	"github.com/airdispatch/dispatcher/library"
 	"github.com/hoisie/web"
 	"fmt"
 )

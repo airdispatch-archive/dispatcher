@@ -3,7 +3,7 @@ package models
 import (
 	"airdispat.ch/client/framework"
 	"airdispat.ch/common"
-	"dispatcher/library"
+	"github.com/airdispatch/dispatcher/library"
 	"github.com/coopernurse/gorp"
 	"crypto/ecdsa"
 	"encoding/hex"

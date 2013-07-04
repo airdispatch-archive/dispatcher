@@ -3,8 +3,8 @@ package main
 import (
 	"code.google.com/p/goprotobuf/proto"
 	"github.com/coopernurse/gorp"
-	// "dispatcher/library"
-	"dispatcher/models"
+	// "github.com/airdispatch/dispatcher/library"
+	"github.com/airdispatch/dispatcher/models"
 	"airdispat.ch/server/framework"
 	"flag"
 	"time"

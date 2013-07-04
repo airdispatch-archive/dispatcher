@@ -2,8 +2,8 @@ package views
 
 import (
 	"github.com/hoisie/web"
-	"dispatcher/models"
-	"dispatcher/library"
+	"github.com/airdispatch/dispatcher/models"
+	"github.com/airdispatch/dispatcher/library"
 	"airdispat.ch/common"
 	"airdispat.ch/airdispatch"
 	cf "airdispat.ch/client/framework"
