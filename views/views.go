@@ -146,7 +146,7 @@ func Dashboard(s *library.Server) library.TemplateView {
 			stringTrackers[i] = v.URL
 		}
 
-		pastMonth := time.Now().Add(time.Duration(-30) * time.Hour * 24)
+		pastMonth := time.Now().Add(time.Duration(-7) * time.Hour * 24)
 
 		outputMail := make([]*airdispatch.Mail, 0)
 
@@ -160,7 +160,7 @@ func Dashboard(s *library.Server) library.TemplateView {
 		}
 
 		context["Messages"] = outputMail
-		context["DisplayTag"] = DisplayMessageTag()
+		context["DisplayTag"] = DisplayMessageTag(s)
 
 		s.WriteTemplateToContext("dashboard.html", ctx, context)
 	}

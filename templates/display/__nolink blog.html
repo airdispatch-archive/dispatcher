@@ -1,0 +1,8 @@
+{{ define "generic" }}
+	<div class="row">
+		<div class="span4">
+			<h3>New Blog Post from {{ call .DisplayAddress .FromAddress }}</h3>
+			<p>{{ call .GetContent "blog/title" }}</p>
+		</div>
+	</div>
+{{ end }}

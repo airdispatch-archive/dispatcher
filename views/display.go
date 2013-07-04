@@ -5,6 +5,7 @@ import (
 	"dispatcher/library"
 	"html/template"
 	"time"
+	"bytes"
 )
 
 type TemplateTag func(interface{}) interface{}
@@ -22,9 +23,27 @@ func DisplayAirDispatchAddress(s *library.Server) TemplateTag {
 	}
 }
 
-func DisplayMessageTag() TemplateTag {
+func DisplayMessageTag(s *library.Server) TemplateTag {
 	return func(arg interface{}) interface{} {
+		context := make(map[string]interface{})
+
 		mail := arg.(*airdispatch.Mail)
-		return template.HTML(template.HTMLEscaper(mail) + "<strong>Sup</strong>")
+
+		context["FromAddress"] = mail.FromAddress
+		context["Encryption"] = mail.Encryption
+
+		allContent := GetNamedMapFromPayload(UnmarshalMessagePayload(mail))
+		context["Content"] = allContent
+
+		context["GetContent"] = func(contentArg string) interface{} {
+			return allContent[contentArg]
+		}
+
+		context["DisplayAddress"] = DisplayAirDispatchAddress(s)
+
+		theBuffer := bytes.NewBuffer(nil)
+		s.WriteTemplateToBuffer("display/blog.html", "generic", theBuffer, context)
+
+		return template.HTML(theBuffer.String())
 	}
 }

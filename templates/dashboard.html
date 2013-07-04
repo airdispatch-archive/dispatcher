@@ -1,13 +1,13 @@
 {{ define "head" }}Dispatcher :: Dashboard{{ end }}
 
-{{ define "title" }}The Dashboard{{ end }}
+{{ define "title" }}The Dashboard :: Last 7 Days{{ end }}
 
 {{ define "shownav" }}{{ end }}
 
 {{ define "body" }}
 	<!-- Toolbar -->
 	<div class="toolbar">
-		<span class="mini">Current Address: <strong>{{ .User.Address }}</strong></span>
+		<span class="mini">Current Address: <strong>{{ .User.Address }}</strong></span><br/>
 	</div>
 
 	{{ $display := .DisplayTag }}

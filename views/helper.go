@@ -10,6 +10,8 @@ import (
 	"strconv"
 )
 
+const noEncryption = "none"
+
 func GetLoggedInUser(s *library.Server, ctx *web.Context) (*models.User) {
 	session, err := s.GetMainSession(ctx)
 
@@ -87,18 +89,44 @@ func MessageToContext(m *models.Message, s *library.Server) map[string]interface
 	theData := &airdispatch.MailData{}
 	proto.Unmarshal(m.Content, theData)
 
-	allContent := make([]map[string]interface{}, len(theData.Payload))
+	output["Content"] = GetContextFromPayload(theData.Payload)
 
-	for i, v := range(theData.Payload) {
+	return output
+}
+
+func UnmarshalMessagePayload(message *airdispatch.Mail) []*airdispatch.MailData_DataType {
+	if *message.Encryption == noEncryption {
+		theContent := &airdispatch.MailData{}
+		proto.Unmarshal(message.Data, theContent)
+
+		return theContent.Payload
+	}
+	return nil
+}
+
+func GetNamedMapFromPayload(content []*airdispatch.MailData_DataType) map[string]interface{} {
+	allContent := make(map[string]interface{})
+
+	for _, v := range(content) {
+		allContent[*v.TypeName] = v.Payload
+	}
+
+	return allContent
+}
+
+func GetContextFromPayload(content []*airdispatch.MailData_DataType) []map[string]interface{} {
+	allContent := make([]map[string]interface{}, len(content))
+
+	for i, v := range(content) {
 		allContent[i] = map[string]interface{} {
 			"TypeName": v.TypeName,
 			"Payload": string(v.Payload),
 		}
+
+		// TODO: Change the Field Type Here...
 	}
 
-	output["Content"] = allContent
-
-	return output
+	return allContent
 }
 
 func ContextToDataTypeBytes(ctx *web.Context) ([]byte, error) {

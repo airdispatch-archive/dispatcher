@@ -145,7 +145,7 @@ func (s *Server) loadTemplates(folder string, append string, linkWithBase bool) 
 			}
 
 			templateName := append + effectiveName
-			s.parseTemplate(templateName, s.getSpecificTemplatePath(templateName), linkingOption)
+			s.parseTemplate(templateName, s.getSpecificTemplatePath(append + fi.Name()), linkingOption)
 		}
 	}
 }
@@ -160,7 +160,7 @@ func (s *Server) parseTemplate(templateName string, filename string, linkWithBas
 		tmp, err = template.New(templateName).ParseFiles(filename)	
 	}
 	if err != nil {
-		fmt.Println("Unable to parse template " + templateName)
+		fmt.Println("Unable to parse template", templateName, "at", filename)
 		fmt.Println(err)
 		os.Exit(1)
 	}
