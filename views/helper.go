@@ -104,16 +104,6 @@ func UnmarshalMessagePayload(message *airdispatch.Mail) []*airdispatch.MailData_
 	return nil
 }
 
-func GetNamedMapFromPayload(content []*airdispatch.MailData_DataType) map[string]interface{} {
-	allContent := make(map[string]interface{})
-
-	for _, v := range(content) {
-		allContent[*v.TypeName] = v.Payload
-	}
-
-	return allContent
-}
-
 func GetContextFromPayload(content []*airdispatch.MailData_DataType) []map[string]interface{} {
 	allContent := make([]map[string]interface{}, len(content))
 

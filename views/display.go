@@ -23,6 +23,13 @@ func DisplayAirDispatchAddress(s *library.Server) TemplateTag {
 	}
 }
 
+func GetContent(allContent map[string]interface{}) TemplateTag {
+	return func(arg interface{}) interface{} {
+		stringArg := arg.(string)
+		return allContent[stringArg]
+	}
+}
+
 func DisplayMessageTag(s *library.Server) TemplateTag {
 	return func(arg interface{}) interface{} {
 		context := make(map[string]interface{})
@@ -32,12 +39,10 @@ func DisplayMessageTag(s *library.Server) TemplateTag {
 		context["FromAddress"] = mail.FromAddress
 		context["Encryption"] = mail.Encryption
 
-		allContent := GetNamedMapFromPayload(UnmarshalMessagePayload(mail))
+		allContent := DetectMessageType(UnmarshalMessagePayload(mail))
 		context["Content"] = allContent
 
-		context["GetContent"] = func(contentArg string) interface{} {
-			return allContent[contentArg]
-		}
+		context["GetContent"] = GetContent(allContent)
 
 		context["DisplayAddress"] = DisplayAirDispatchAddress(s)
 
@@ -46,4 +51,22 @@ func DisplayMessageTag(s *library.Server) TemplateTag {
 
 		return template.HTML(theBuffer.String())
 	}
+}
+
+func DetectMessageType(arg []*airdispatch.MailData_DataType) map[string]interface{} {
+	return GetNamedMapFromPayload(arg, func(data []byte)interface{} {
+			return string(data)
+	})
+}
+
+type ADUnloader func([]byte) interface{}
+
+func GetNamedMapFromPayload(content []*airdispatch.MailData_DataType, unload ADUnloader) map[string]interface{} {
+	allContent := make(map[string]interface{})
+
+	for _, v := range(content) {
+		allContent[*v.TypeName] = unload(v.Payload)
+	}
+
+	return allContent
 }
