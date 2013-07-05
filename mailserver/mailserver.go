@@ -160,9 +160,10 @@ func (myServer) RetrieveMessage(id string) ([]byte, []string) {
 		ToAddress string
 		Keypair []byte
 		Address string
+		Timestamp int64
 	}
 
-	query := "select m.content, m.toaddress, u.keypair, u.address " 
+	query := "select m.content, m.toaddress, u.keypair, u.address, m.timestamp " 
 	query += "from dispatch_messages m, dispatch_users u "
 	query += "where m.slug = '" + id + "' and m.sendinguser = u.id"
 	query += "limit 1 "
@@ -181,10 +182,14 @@ func (myServer) RetrieveMessage(id string) ([]byte, []string) {
 		return nil, nil
 	}
 
+	currentTime := uint64(results[0].Timestamp)
+
 	newMail := &airdispatch.Mail {
 		FromAddress: &results[0].Address,
 		Data: results[0].Content,
 		Encryption: &noEncryption,
+		Timestamp: &currentTime,
+		ToAddress: &results[0].ToAddress,
 	}
 	data, _ := proto.Marshal(newMail)
 
@@ -220,9 +225,10 @@ func (m myServer) RetrievePublic(fromAddr string, since uint64) [][]byte {
 	type queryResult struct {
 		Content []byte
 		Keypair []byte
+		Timestamp int64
 	}
 
-	query := "select m.content, u.keypair " 
+	query := "select m.content, u.keypair, m.timestamp " 
 	query += "from dispatch_messages m, dispatch_users u "
 	query += "where m.sendinguser = u.id and toaddress='' and timestamp > " + strconv.FormatUint(since, 10) + " "
 	query += "and u.address = '" + fromAddr + "' "
@@ -234,6 +240,7 @@ func (m myServer) RetrievePublic(fromAddr string, since uint64) [][]byte {
 	output := make([][]byte, len(results))
 
 	var keys *ecdsa.PrivateKey = nil
+	toAll := ""
 
 	for i, v := range(results) {
 		if keys == nil {
@@ -245,14 +252,23 @@ func (m myServer) RetrievePublic(fromAddr string, since uint64) [][]byte {
 			}
 		}
 
+		currentTime := uint64(v.Timestamp)
+
 		newMail := &airdispatch.Mail {
 			FromAddress: &fromAddr,
 			Data: v.Content,
 			Encryption: &noEncryption,
+			Timestamp: &currentTime,
+			ToAddress: &toAll,
 		}
 		data, _ := proto.Marshal(newMail)
 
-		toSend, _ := common.CreateAirdispatchMessage(data, keys, common.MAIL_MESSAGE)
+		toSend, err := common.CreateAirdispatchMessage(data, keys, common.MAIL_MESSAGE)
+		if err != nil {
+			fmt.Println("Error Creating Message")
+			fmt.Println(err)
+			continue
+		}
 
 		// Remove the Prefix
 		output[i] = toSend[6:]
