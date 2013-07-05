@@ -34,7 +34,7 @@ func main() {
 		Port: temp_port,
 		DbMap: dbMap,
 		MainSessionName: "dispatcher-session",
-		Mailserver: "localhost:2048",
+		Mailserver: "mailserver.airdispat.ch:2048",
 	}
 
 	// Flush the Database
@@ -116,10 +116,12 @@ func defineRoutes(s *library.Server) {
 	s.WebServer.Get("/message/([0-9]*)/edit", views.WildcardTemplateLoginRequired(s, views.DisplayEditMessage(s)))
 	s.WebServer.Post("/message/([0-9]*)/edit", views.WildcardTemplateLoginRequired(s, views.UpdateMessage(s)))
 
-	s.WebServer.Get("/account/register", views.TemplateLoginRequired(s, views.RegisterWithTrackers(s)))
+	s.WebServer.Get("/account/tracker_registration", views.TemplateLoginRequired(s, views.RegisterWithTrackers(s)))
 
 	s.WebServer.Get("/login", s.DisplayTemplate("login.html"))
 	s.WebServer.Post("/login", views.LoginView(s))
+
+	s.WebServer.Post("/account/create", views.RegisterUser(s))
 
 	s.WebServer.Get("/logout", views.TemplateLoginRequired(s, views.LogoutView(s)))
 }
