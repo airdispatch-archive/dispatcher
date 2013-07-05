@@ -39,24 +39,23 @@ func DisplayMessageTag(s *library.Server) TemplateTag {
 		context["FromAddress"] = mail.FromAddress
 		context["Encryption"] = mail.Encryption
 
-		allContent := DetectMessageType(UnmarshalMessagePayload(mail))
+		allContent, tmpName := DetectMessageType(UnmarshalMessagePayload(mail))
 		context["Content"] = allContent
 
 		context["GetContent"] = GetContent(allContent)
-
 		context["DisplayAddress"] = DisplayAirDispatchAddress(s)
 
 		theBuffer := bytes.NewBuffer(nil)
-		s.WriteTemplateToBuffer("display/blog.html", "generic", theBuffer, context)
+		s.WriteTemplateToBuffer(tmpName, "generic", theBuffer, context)
 
 		return template.HTML(theBuffer.String())
 	}
 }
 
-func DetectMessageType(arg []*airdispatch.MailData_DataType) map[string]interface{} {
+func DetectMessageType(arg []*airdispatch.MailData_DataType) (map[string]interface{}, string) {
 	return GetNamedMapFromPayload(arg, func(data []byte)interface{} {
 			return string(data)
-	})
+	}), "display/blog.html"
 }
 
 type ADUnloader func([]byte) interface{}

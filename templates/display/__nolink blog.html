@@ -1,8 +1,11 @@
 {{ define "generic" }}
 	<div class="row">
+		<div class="span6">
+			<p>{{ call .DisplayAddress .FromAddress }}</p>
+		</div>
 		<div class="span4">
-			<h3>New Blog Post from {{ call .DisplayAddress .FromAddress }}</h3>
-			<p>{{ call .GetContent "blog/title" }}</p>
+			<p>Friday, October 5th at 11:05 PM</p>
 		</div>
 	</div>
+	<h3>{{ call .GetContent "blog/title" }}</h3>
 {{ end }}
