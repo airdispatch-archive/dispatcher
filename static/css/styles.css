@@ -34,6 +34,10 @@ hr {
 	font-size: 12px;
 }
 
+.extra-padding {
+	margin-bottom: 10px;
+}
+
 div.btn a {
 	color: #333;
 }

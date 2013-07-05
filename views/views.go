@@ -79,6 +79,22 @@ func DisplayEditMessage(s *library.Server) library.WildcardTemplateView {
 	}
 }
 
+func ShowSubscriptions(s *library.Server) library.TemplateView {
+	return func(ctx *web.Context) {
+		theUser := GetLoggedInUser(s, ctx)
+
+		var theMessages []*models.Subscription
+		s.DbMap.Select(&theMessages, "select * from dispatch_subscriptions where \"user\"=" + strconv.FormatInt(theUser.Id, 10))
+
+		context := make(map[string]interface{})
+		context["Subscriptions"] = theMessages
+
+		context["DisplayTag"] = DisplayAirDispatchAddress(s)
+
+		s.WriteTemplateToContext("subscribe.html", ctx, context)
+	}
+}
+
 func CreateSubscription(s *library.Server) library.TemplateView {
 	return func(ctx *web.Context) {
 		to_address := ctx.Params["to_address"]

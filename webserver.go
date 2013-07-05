@@ -105,7 +105,7 @@ func defineRoutes(s *library.Server) {
 	s.WebServer.Get("/compose", views.TemplateLoginRequired(s, s.DisplayTemplate("compose.html")))
 	s.WebServer.Post("/compose", views.TemplateLoginRequired(s, views.CreateMessage(s)))
 
-	s.WebServer.Get("/subscribe", views.TemplateLoginRequired(s, s.DisplayTemplate("subscribe.html")))
+	s.WebServer.Get("/subscribe", views.TemplateLoginRequired(s, views.ShowSubscriptions(s)))
 	s.WebServer.Post("/subscribe", views.TemplateLoginRequired(s, views.CreateSubscription(s)))
 
 	s.WebServer.Get("/inbox", views.TemplateLoginRequired(s, views.ShowFolder(s, "Inbox")))

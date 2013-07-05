@@ -5,17 +5,28 @@
 {{ define "shownav" }}{{ end }}
 
 {{ define "body" }}
-	<p>This form allows you to subscribe to an airdispatch user.</p>
-	<br/>
-	<form method="post" class="form-horizontal">
-		<div class="control-group">
-			<label class="control-label" for="to_address">Subscription Address</label>
-			<div class="controls">
-				<input type="text" id="to_address" class="span5" name="to_address" value="{{ .Initial.ToAddress }}">
+	<h3>Current Subscriptions</h3>
+	{{ $d := .DisplayTag }}
+	{{ range .Subscriptions }}
+		<div class="row extra-padding">
+			<div class="span9">
+				{{ call $d .SubscribedAddress }}
+			</div>
+			<div class="span1">
+				<button class="btn btn-danger span1 btn-remove"><i class="icon-remove"></i></button>
 			</div>
 		</div>
-		<div class="form-actions">
-			<input type="submit" value="Confirm Subscription" class="btn btn-warning"/>
-		</div>
+	{{ else }}
+		<p>Nothing here. Add a subscription to a friend at the bottom of the page.</p>
+	{{ end }}
+	<hr/>
+	<h3>New Subscription</h3>
+	<form method="post">
+		<fieldset>
+			<label class="control-label" for="to_address">Subscription Address</label>
+			<input type="text" id="to_address" class="span5" name="to_address" value="{{ .Initial.ToAddress }}"/>
+			<br/>
+			<button type="submit" class="btn btn-warning">Add Subscription</button>
+		</fieldset>
 	</form>
 {{ end }}
