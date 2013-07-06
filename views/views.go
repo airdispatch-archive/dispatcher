@@ -7,6 +7,7 @@ import (
 	"airdispat.ch/common"
 	"airdispat.ch/airdispatch"
 	cf "airdispat.ch/client/framework"
+	sf "airdispat.ch/server/framework"
 	"encoding/hex"
 	"time"
 	"fmt"
@@ -46,6 +47,31 @@ func CreateMessage(s *library.Server) library.TemplateView {
 		newMessage.SendingUser = sending_user.Id
 		newMessage.ToAddress = to_address
 		newMessage.Slug = hex.EncodeToString(common.HashSHA(nil, byteData))
+
+		// If there _is_ a ToAddress, you should actually
+		// send the message
+		if to_address != "" {
+			// Create Server Instance
+			newServer := sf.Server{
+				LocationName: s.Mailserver,
+				Key: sending_user.LoadedKey,
+				Delegate: sf.BasicServer{},
+			}
+
+			// Get the Tracker List
+			trackerList, _ := models.GetTrackerList(s.DbMap)
+			stringTrackers := make([]string, len(trackerList))
+			for i, v := range(trackerList) {
+				stringTrackers[i] = v.URL
+			}
+
+			// Get the Location of the Server
+			serverLocation, err := common.LookupLocation(to_address, stringTrackers, sending_user.LoadedKey)
+			fmt.Println("Found Location", serverLocation, "with error", err)
+
+			// Send the Alert
+			newServer.SendAlert(serverLocation, newMessage.Slug, to_address)
+		}
 
 		s.DbMap.Insert(newMessage)
 	}
