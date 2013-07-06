@@ -117,38 +117,13 @@ func (myServer) SaveIncomingAlert(alert *airdispatch.Alert, alertData []byte, fr
 		ToUser: theUser.Id,
 	}
 
+	fmt.Println("Received Alert From", fromAddr)
+
 	dbMap.Insert(theSavedAlert)
 }
 
-func (myServer) SavePublicMail(theMail []byte, fromAddr string) {
-	// theUser, _ := models.GetUserWithAddress(dbMap, fromAddr)
-
-	// theSavedMail := &models.Message {
-	// 	ToAddress: "",
-	// 	Slug: GetMessageId(theMail),
-	// 	MessageType: "_unknown",
-	// }
-
-	// dbMap.Insert(theSavedMail)
-}
-
-func (myServer) SavePrivateMail(theMail []byte, toAddress []string) (id string) {
-	// // Get a hash of the Message
-	// hash := GetMessageId(theMail)
-
-	// // Create a Record to Store the Message in the Outgoing Mail Box
-	// storedData := Mail {
-	// 	approved: toAddress,
-	// 	data: theMail,
-	// 	receivedTime: time.Now(),
-	// }
-
-	// // Store the Message in the Database
-	// storedMessages[hash] = storedData
-
-	// return hash
-	return ""
-}
+func (myServer) SavePublicMail(theMail []byte, fromAddr string) {}
+func (myServer) SavePrivateMail(theMail []byte, toAddress []string) (id string) { return ""; }
 
 func GetMessageId(theMail []byte) string {
 	return hex.EncodeToString(common.HashSHA(theMail, nil))
@@ -165,7 +140,7 @@ func (myServer) RetrieveMessage(id string) ([]byte, []string) {
 
 	query := "select m.content, m.toaddress, u.keypair, u.address, m.timestamp " 
 	query += "from dispatch_messages m, dispatch_users u "
-	query += "where m.slug = '" + id + "' and m.sendinguser = u.id"
+	query += "where m.slug = '" + id + "' and m.sendinguser = u.id "
 	query += "limit 1 "
 
 	var results []*queryResult
@@ -191,11 +166,17 @@ func (myServer) RetrieveMessage(id string) ([]byte, []string) {
 		Timestamp: &currentTime,
 		ToAddress: &results[0].ToAddress,
 	}
-	data, _ := proto.Marshal(newMail)
+	data, err := proto.Marshal(newMail)
+	if err != nil {
+		fmt.Println("Erorr marshalling", err);
+	}
 
-	toSend, _ := common.CreateAirdispatchMessage(data, keys, common.MAIL_MESSAGE)
+	toSend, err := common.CreateAirdispatchMessage(data, keys, common.MAIL_MESSAGE)
+	if err != nil {
+		fmt.Println("Error making message", err);
+	}
 
-	return toSend, strings.Split(results[0].ToAddress, ",")
+	return toSend[6:], strings.Split(results[0].ToAddress, ",")
 }
 
 func (m myServer) RetrieveInbox(addr string, since uint64) [][]byte {
