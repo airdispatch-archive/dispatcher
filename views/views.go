@@ -142,17 +142,17 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 
 		context["TimeFunction"] = TimestampToString()
 
+		current_user := GetLoggedInUser(s, ctx)
 
 		if folderName == "Sent Messages" {
 			var theMessages []*models.Message
-			s.DbMap.Select(&theMessages, "select * from dispatch_messages order by timestamp DESC")
+			s.DbMap.Select(&theMessages, "select * from dispatch_messages where sendinguser=" + strconv.FormatInt(current_user.Id, 10) + " order by timestamp DESC")
 			context["Messages"] = theMessages
 		} else if folderName == "Inbox" {
 			var theMessages []*models.Alert
-			s.DbMap.Select(&theMessages, "select * from dispatch_alerts order by timestamp DESC")
+			s.DbMap.Select(&theMessages, "select * from dispatch_alerts where touser=" + strconv.FormatInt(current_user.Id, 10) + "order by timestamp DESC")
 			context["Messages"] = theMessages
 		}
-
 
 		s.WriteTemplateToContext("messages/list.html", ctx, context)
 	}
