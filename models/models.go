@@ -112,7 +112,7 @@ func GetTrackerList(dbMap *gorp.DbMap) ([]*Tracker, error) {
 
 func GetUserWithAddress(dbMap *gorp.DbMap, address string) (*User, error) {
 	var theUsers []*User
-	_, err := dbMap.Select(&theUsers, "select * from dispatch_users where address=?", address)
+	_, err := dbMap.Select(&theUsers, "select * from dispatch_users where address='" + address + "'")
 	if err != nil {
 		fmt.Println("SQL Error")
 		fmt.Println(err)

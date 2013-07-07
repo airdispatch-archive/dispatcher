@@ -108,7 +108,10 @@ type myServer struct{
 func (myServer) SaveIncomingAlert(alert *airdispatch.Alert, alertData []byte, fromAddr string) {
 	// Get the recipient address of the message
 	toAddr := *alert.ToAddress
-	theUser, _ := models.GetUserWithAddress(dbMap, toAddr)
+	theUser, err := models.GetUserWithAddress(dbMap, toAddr)
+	if err != nil {
+		fmt.Println("Getting User Error", err)
+	}
 
 	theSavedAlert := &models.Alert {
 		Content: alertData,
@@ -116,8 +119,6 @@ func (myServer) SaveIncomingAlert(alert *airdispatch.Alert, alertData []byte, fr
 		Timestamp: time.Now().Unix(),
 		ToUser: theUser.Id,
 	}
-
-	fmt.Println("Received Alert From", fromAddr)
 
 	dbMap.Insert(theSavedAlert)
 }
