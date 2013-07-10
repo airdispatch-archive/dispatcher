@@ -14,7 +14,6 @@ import (
 	"encoding/hex"
 	"os"
 	"fmt"
-	"strings"
 	"strconv"
 	"bytes"
 )
@@ -104,6 +103,10 @@ type myServer struct{
 	framework.BasicServer
 }
 
+func (myServer) AllowSendConnection(user string) (bool) {
+	return false
+}
+
 // Function that Handles an Alert of a Message
 func (myServer) SaveIncomingAlert(alert *airdispatch.Alert, alertData []byte, fromAddr string) {
 	// Get the recipient address of the message
@@ -130,7 +133,7 @@ func GetMessageId(theMail []byte) string {
 	return hex.EncodeToString(common.HashSHA(theMail, nil))
 }
 
-func (myServer) RetrieveMessage(id string) ([]byte, []string) {
+func (myServer) RetrieveMessageForUser(id string, addr string) ([]byte) {
 	type queryResult struct {
 		Content []byte
 		ToAddress string
@@ -141,7 +144,7 @@ func (myServer) RetrieveMessage(id string) ([]byte, []string) {
 
 	query := "select m.content, m.toaddress, u.keypair, u.address, m.timestamp " 
 	query += "from dispatch_messages m, dispatch_users u "
-	query += "where m.slug = '" + id + "' and m.sendinguser = u.id "
+	query += "where m.slug = '" + id + "' and m.sendinguser = u.id and m.toaddress = '" + addr + "' "
 	query += "limit 1 "
 
 	var results []*queryResult
@@ -149,13 +152,13 @@ func (myServer) RetrieveMessage(id string) ([]byte, []string) {
 
 	if len(results) != 1 {
 		fmt.Println("Incorrect Number of Messages Returned")
-		return nil, nil
+		return nil
 	}
 
 	keys, err := common.GobDecodeKey(bytes.NewBuffer(results[0].Keypair))
 	if err != nil {
 		fmt.Println("Error Getting Keys")
-		return nil, nil
+		return nil
 	}
 
 	currentTime := uint64(results[0].Timestamp)
@@ -177,7 +180,7 @@ func (myServer) RetrieveMessage(id string) ([]byte, []string) {
 		fmt.Println("Error making message", err);
 	}
 
-	return toSend[6:], strings.Split(results[0].ToAddress, ",")
+	return toSend[6:]
 }
 
 func (m myServer) RetrieveInbox(addr string, since uint64) [][]byte {
