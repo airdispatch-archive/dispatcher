@@ -167,10 +167,15 @@ func ShowAlert(s *library.Server) library.WildcardTemplateView {
 
 		castedAlert := theAlert.(*models.Alert)
 
-		data, _, fromAddr, err := common.ReadSignedBytes(castedAlert.Content)
+		readMessage, err := common.ReadADMessageFromBytes(castedAlert.Content)
+		if err != nil {
+			ctx.WriteString("Couldn't Read Message")
+			fmt.Println(err)
+			return
+		}
 
 		unMarshalledAlert :=  &airdispatch.Alert{}
-		err = proto.Unmarshal(data, unMarshalledAlert)
+		err = proto.Unmarshal(readMessage.Payload, unMarshalledAlert)
 		if err != nil {
 			ctx.WriteString("Malformed Alert")
 			fmt.Println(err)
@@ -190,7 +195,7 @@ func ShowAlert(s *library.Server) library.WildcardTemplateView {
 			return
 		}
 
-		displayMessage(s, MailToMessage(theMail, fromAddr), ctx)
+		displayMessage(s, MailToMessage(theMail, readMessage.FromAddress), ctx)
 	}
 }
 

@@ -5,7 +5,6 @@ import (
 	"airdispat.ch/common"
 	"github.com/airdispatch/dispatcher/library"
 	"github.com/coopernurse/gorp"
-	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
 	"bytes"
@@ -43,7 +42,7 @@ type User struct { // dispatch_userg
 	Keypair []byte
 	Id int64
 	Address string
-	LoadedKey *ecdsa.PrivateKey `db:"-"` // This field is transient
+	LoadedKey *common.ADKey `db:"-"` // This field is transient
 }
 
 func (u *User) Populate() error {
@@ -53,15 +52,15 @@ func (u *User) Populate() error {
 	}
 
 	u.LoadedKey = keys
-	u.Address = common.StringAddress(&keys.PublicKey)
+	u.Address = keys.HexEncode()
 
 	return nil
 }
 
 func CreateUser(username string, password string, s *library.Server) *User {
-	key, _ := common.CreateKey()
+	key, _ := common.CreateADKey()
 	buf := new(bytes.Buffer)
-	common.GobEncodeKey(key, buf)
+	key.GobEncodeKey(buf)
 
 	newUser := &User {
 		Username: username,
@@ -80,12 +79,13 @@ func (u  *User) RegisterUserWithTracker(s *library.Server) error {
 
 	c := &framework.Client {}
 	c.Populate(u.LoadedKey)
+	c.MailServer = s.Mailserver
 
 	// Convert to tracker list
 	success := false
 
 	for _, v := range(theTrackers) {
-		err = c.SendRegistration(v.URL, s.Mailserver)
+		err = c.SendRegistration(v.URL)
 		if err == nil {
 			success = true
 		} else {

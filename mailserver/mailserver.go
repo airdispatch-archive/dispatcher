@@ -10,7 +10,6 @@ import (
 	"time"
 	"airdispat.ch/common"
 	"airdispat.ch/airdispatch"
-	"crypto/ecdsa"
 	"encoding/hex"
 	"os"
 	"fmt"
@@ -32,10 +31,6 @@ func getHostname() string {
 	return s
 }
 
-// Variables that store information about the server
-var serverLocation string
-var serverKey *ecdsa.PrivateKey
-
 func main() {
 	// Parse the configuration Command Line Falgs
 	flag.Parse()
@@ -45,7 +40,7 @@ func main() {
 
 	if err != nil {
 
-		loadedKey, err = common.CreateKey()
+		loadedKey, err = common.CreateADKey()
 		if err != nil {
 			fmt.Println("Unable to Create Tracker Key")
 			return
@@ -53,7 +48,7 @@ func main() {
 
 		if *key_file != "" {
 
-			err = common.SaveKeyToFile(*key_file, loadedKey)
+			err = loadedKey.SaveKeyToFile(*key_file)
 			if err != nil {
 				fmt.Println("Unable to Save Tracker Key")
 				return
@@ -61,7 +56,7 @@ func main() {
 		}
 
 	}
-	fmt.Println("Loaded Address", common.StringAddress(&loadedKey.PublicKey))
+	fmt.Println("Loaded Address", loadedKey.HexEncode())
 
 	dbMap, err = models.ConnectToDB()
 	if err != nil {
@@ -83,7 +78,6 @@ func main() {
 	}
 
 	// Find the location of this server
-	serverLocation = *me
 	handler := &myServer{}
 	theServer := framework.Server{
 		LocationName: *me,
@@ -175,7 +169,9 @@ func (myServer) RetrieveMessageForUser(id string, addr string) ([]byte) {
 		fmt.Println("Erorr marshalling", err);
 	}
 
-	toSend, err := common.CreateAirdispatchMessage(data, keys, common.MAIL_MESSAGE)
+	newMessage := &common.ADMessage{data, common.MAIL_MESSAGE, ""}
+
+	toSend, err := keys.CreateADMessage(newMessage)
 	if err != nil {
 		fmt.Println("Error making message", err);
 	}
@@ -224,7 +220,7 @@ func (m myServer) RetrievePublic(fromAddr string, since uint64) [][]byte {
 
 	output := make([][]byte, len(results))
 
-	var keys *ecdsa.PrivateKey = nil
+	var keys *common.ADKey = nil
 	toAll := ""
 
 	for i, v := range(results) {
@@ -248,7 +244,9 @@ func (m myServer) RetrievePublic(fromAddr string, since uint64) [][]byte {
 		}
 		data, _ := proto.Marshal(newMail)
 
-		toSend, err := common.CreateAirdispatchMessage(data, keys, common.MAIL_MESSAGE)
+		newMessage := &common.ADMessage{data, common.MAIL_MESSAGE, ""}
+
+		toSend, err := keys.CreateADMessage(newMessage)
 		if err != nil {
 			fmt.Println("Error Creating Message")
 			fmt.Println(err)
