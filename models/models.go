@@ -145,6 +145,7 @@ type Contact struct {
 type Message struct {
 	Id int64
 	ToAddress string
+	FromAddress string `db:"-"` // This field is transient
 	Slug string
 	MessageType string
 	Timestamp int64

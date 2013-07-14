@@ -65,6 +65,16 @@ func LogoutView(s *library.Server) library.TemplateView {
 	}
 }
 
+func MailToMessage(a *airdispatch.Mail, from string) *models.Message {
+	return &models.Message {
+		Id: 0,
+		ToAddress: a.GetToAddress(),
+		FromAddress: from,
+		Timestamp: int64(a.GetTimestamp()),
+		Content: a.GetData(),
+	}
+}
+
 func MessageToContext(m *models.Message, s *library.Server) map[string]interface{} {
 	output := make(map[string]interface{})
 
@@ -81,8 +91,13 @@ func MessageToContext(m *models.Message, s *library.Server) map[string]interface
 		output["Encryption"] = "aes/256"
 	}
 
-	theUser, _ := s.DbMap.Get(&models.User{}, m.SendingUser)
-	output["FROM"] = theUser.(*models.User).FullName
+	if m.Id == 0 {
+		output["FROM"] = m.FromAddress
+	} else {
+		theUser, _ := s.DbMap.Get(&models.User{}, m.SendingUser)
+
+		output["FROM"] = theUser.(*models.User).FullName
+	}
 
 	output["Timestamp"] = TimestampToString()(m.Timestamp)
 

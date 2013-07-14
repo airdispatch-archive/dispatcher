@@ -8,9 +8,11 @@
 	<!-- Toolbar -->
 	<div class="toolbar">
 		<div class="btn-group">
+			{{ if .Message.ID }}
 			<div class="btn btn-mini">
 				<a href="/message/{{ .Message.ID }}/edit"><i class="icon-file"></i> Edit</a>
 			</div>
+			{{ end }}
 		</div>
 		<div class="btn-group">
 			<div class="btn btn-mini"><i class="icon-mail-reply"></i> Reply</div>

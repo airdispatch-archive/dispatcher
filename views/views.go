@@ -8,6 +8,7 @@ import (
 	"airdispat.ch/airdispatch"
 	cf "airdispat.ch/client/framework"
 	sf "airdispat.ch/server/framework"
+	"code.google.com/p/goprotobuf/proto"
 	"encoding/hex"
 	"time"
 	"fmt"
@@ -141,6 +142,7 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 		context["FolderName"] = folderName
 
 		context["TimeFunction"] = TimestampToString()
+		context["BasePrefix"] = "alert"
 
 		current_user := GetLoggedInUser(s, ctx)
 
@@ -148,6 +150,7 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 			var theMessages []*models.Message
 			s.DbMap.Select(&theMessages, "select * from dispatch_messages where sendinguser=" + strconv.FormatInt(current_user.Id, 10) + " order by timestamp DESC")
 			context["Messages"] = theMessages
+			context["BasePrefix"] = "message"
 		} else if folderName == "Inbox" {
 			var theMessages []*models.Alert
 			s.DbMap.Select(&theMessages, "select * from dispatch_alerts where touser=" + strconv.FormatInt(current_user.Id, 10) + "order by timestamp DESC")
@@ -158,15 +161,52 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 	}
 }
 
+func ShowAlert(s *library.Server) library.WildcardTemplateView {
+	return func(ctx *web.Context, val string) {
+		theAlert, _ := s.DbMap.Get(models.Alert{}, val)
+
+		castedAlert := theAlert.(*models.Alert)
+
+		data, _, fromAddr, err := common.ReadSignedBytes(castedAlert.Content)
+
+		unMarshalledAlert :=  &airdispatch.Alert{}
+		err = proto.Unmarshal(data, unMarshalledAlert)
+		if err != nil {
+			ctx.WriteString("Malformed Alert")
+			fmt.Println(err)
+			return
+		}
+
+		// Download Message
+		current_user := GetLoggedInUser(s, ctx)
+
+		newClient := cf.Client{}
+		newClient.Populate(current_user.LoadedKey)
+
+		theMail, err := newClient.DownloadSpecificMessageFromServer(unMarshalledAlert.GetMessageId(), unMarshalledAlert.GetLocation())
+		if err != nil {
+			ctx.WriteString("Couldn't Download Message")
+			fmt.Println(err)
+			return
+		}
+
+		displayMessage(s, MailToMessage(theMail, fromAddr), ctx)
+	}
+}
+
 func ShowMessage(s *library.Server) library.WildcardTemplateView {
 	return func(ctx *web.Context, val string) {
 		theMessage, _ := s.DbMap.Get(models.Message{}, val)
 
-		context := make(map[string]interface{})
-		context["Message"] = MessageToContext(theMessage.(*models.Message), s)
-
-		s.WriteTemplateToContext("messages/show.html", ctx, context)
+		displayMessage(s, theMessage.(*models.Message), ctx)
 	}
+}
+
+func displayMessage(s *library.Server, m *models.Message, ctx *web.Context) {
+	context := make(map[string]interface{})
+	context["Message"] = MessageToContext(m, s)
+
+	s.WriteTemplateToContext("messages/show.html", ctx, context)
 }
 
 func Dashboard(s *library.Server) library.TemplateView {

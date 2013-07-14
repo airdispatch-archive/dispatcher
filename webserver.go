@@ -14,6 +14,7 @@ import (
 var flag_port = flag.String("port", "2048", "specify the port that the server should run on")
 var db_flush = flag.Bool("db_flush", false, "specifies to flush the database")
 var db_create = flag.Bool("db_create", false, "specifies to create the database")
+var me = flag.String("me", "", "specify the location of this running server")
 
 func main() {
 	flag.Parse()
@@ -34,7 +35,7 @@ func main() {
 		Port: temp_port,
 		DbMap: dbMap,
 		MainSessionName: "dispatcher-session",
-		Mailserver: "mailserver.airdispat.ch:2048",
+		Mailserver: *me,
 	}
 
 	// Flush the Database
@@ -111,6 +112,8 @@ func defineRoutes(s *library.Server) {
 	s.WebServer.Get("/inbox", views.TemplateLoginRequired(s, views.ShowFolder(s, "Inbox")))
 	s.WebServer.Get("/sent", views.TemplateLoginRequired(s, views.ShowFolder(s, "Sent Messages")))
 
+	s.WebServer.Get("/alert/([0-9]*)", views.WildcardTemplateLoginRequired(s, views.ShowAlert(s)))
+	
 	s.WebServer.Get("/message/([0-9]*)", views.WildcardTemplateLoginRequired(s, views.ShowMessage(s)))
 
 	s.WebServer.Get("/message/([0-9]*)/edit", views.WildcardTemplateLoginRequired(s, views.DisplayEditMessage(s)))
