@@ -3,7 +3,7 @@ package models
 import (
 	"airdispat.ch/client/framework"
 	"airdispat.ch/common"
-	"github.com/airdispatch/dispatcher/library"
+	library "github.com/airdispatch/go-pressure"
 	"github.com/coopernurse/gorp"
 	"encoding/hex"
 	"errors"

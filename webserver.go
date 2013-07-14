@@ -5,7 +5,7 @@ import (
 	"os"
 	"flag"
 	"fmt"
-	"github.com/airdispatch/dispatcher/library"
+	library "github.com/airdispatch/go-pressure"
 	"github.com/airdispatch/dispatcher/views"
 	"github.com/airdispatch/dispatcher/models"
 	// "airdispat.ch/common"

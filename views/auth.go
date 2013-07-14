@@ -2,7 +2,7 @@ package views
 
 import (
 	"github.com/airdispatch/dispatcher/models"
-	"github.com/airdispatch/dispatcher/library"
+	library "github.com/airdispatch/go-pressure"
 	"github.com/hoisie/web"
 )
 

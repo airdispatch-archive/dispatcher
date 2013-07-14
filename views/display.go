@@ -2,7 +2,7 @@ package views
 
 import (
 	"airdispat.ch/airdispatch"
-	"github.com/airdispatch/dispatcher/library"
+	library "github.com/airdispatch/go-pressure"
 	"html/template"
 	"time"
 	"bytes"
