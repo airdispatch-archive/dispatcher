@@ -6,6 +6,7 @@ import (
 	"github.com/hoisie/web"
 	"code.google.com/p/goprotobuf/proto"
 	"airdispat.ch/airdispatch"
+	"airdispat.ch/common"
 	"errors"
 	"strconv"
 )
@@ -110,7 +111,7 @@ func MessageToContext(m *models.Message, s *library.Server) map[string]interface
 }
 
 func UnmarshalMessagePayload(message *airdispatch.Mail) []*airdispatch.MailData_DataType {
-	if *message.Encryption == noEncryption {
+	if *message.Encryption == common.ADEncryptionNone {
 		theContent := &airdispatch.MailData{}
 		proto.Unmarshal(message.Data, theContent)
 

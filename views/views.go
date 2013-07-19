@@ -47,7 +47,7 @@ func CreateMessage(s *library.Server) library.TemplateView {
 		newMessage.Timestamp = time.Now().Unix()
 		newMessage.SendingUser = sending_user.Id
 		newMessage.ToAddress = to_address
-		newMessage.Slug = hex.EncodeToString(common.HashSHA(nil, byteData))
+		newMessage.Slug = hex.EncodeToString(common.HashSHA(byteData))
 
 		// If there _is_ a ToAddress, you should actually
 		// send the message
@@ -67,7 +67,7 @@ func CreateMessage(s *library.Server) library.TemplateView {
 			}
 
 			// Get the Location of the Server
-			serverLocation, err := common.LookupLocation(to_address, stringTrackers, sending_user.LoadedKey)
+			serverLocation, _, err := common.LookupLocation(to_address, stringTrackers, sending_user.LoadedKey)
 			fmt.Println("Found Location", serverLocation, "with error", err)
 
 			// Send the Alert

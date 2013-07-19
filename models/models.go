@@ -130,7 +130,7 @@ func (user *User) VerifyPassword(password string) bool {
 }
 
 func HashPassword(password string) string {
-	return hex.EncodeToString(common.HashSHA(nil, []byte(password)))
+	return hex.EncodeToString(common.HashSHA([]byte(password)))
 }
 
 type Mailbox struct {}
