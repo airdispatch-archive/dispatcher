@@ -6,9 +6,11 @@ import (
 	"html/template"
 	"time"
 	"bytes"
+	"fmt"
 )
 
 type TemplateTag func(interface{}) interface{}
+type TemplateTagWithInteger func(interface{}, int) interface{}
 
 func TimestampToString() TemplateTag {
 	return func(arg interface{}) interface{} {
@@ -20,6 +22,21 @@ func TimestampToString() TemplateTag {
 func DisplayAirDispatchAddress(s *library.Server) TemplateTag {
 	return func(arg interface{}) interface{} {
 		return arg
+	}
+}
+
+func DisplayAirDispatchField() TemplateTagWithInteger {
+	return func(arg interface{}, counter int) interface{} {
+		argMap := arg.(map[string]interface{})
+		output := template.HTML("")
+
+		if argMap["Editor"] == DispatcherTextEditor {
+			output = template.HTML(fmt.Sprintf("<input type='text' id='%v' class='span5' name='content[%v][1]' value='%v'>", argMap["TypeName"], counter, argMap["Payload"]))
+		} else if argMap["Editor"] == DispatcherTextArea {
+			output = template.HTML(fmt.Sprintf("<textarea id='%v' class='span5' name='content[%v][1]' style='height: 250px;'>%v</textarea>", argMap["TypeName"], counter, argMap["Payload"]))
+		}
+
+		return output
 	}
 }
 

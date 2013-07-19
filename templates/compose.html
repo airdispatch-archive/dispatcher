@@ -44,10 +44,12 @@
 		<br/>
 
 		<div class="all-controls">
+			{{ $d := .DisplayForm }}
 			{{ range $i, $v := .Initial.Content }}
 				<div class="controls controls-row content-control">
 					<input type="text" id="{{ $v.TypeName }}" class="span3 control-name" name="content[{{ $i }}][0]" value="{{ $v.TypeName }}" readonly='readonly'>
-					<input type="text" id="{{ $v.TypeName }}" class="span5" name="content[{{ $i }}][1]" value="{{ $v.Payload }}">
+					{{ call $d $v $i }}
+					<!-- <input type="text" id="{{ $v.TypeName }}" class="span5" name="content[{{ $i }}][1]" value="{{ $v.Payload }}"> -->
 					<button class="btn btn-danger span1 btn-remove"><i class="icon-remove"></i></button>
 				</div>
 			{{ end }}

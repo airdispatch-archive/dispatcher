@@ -101,6 +101,7 @@ func DisplayEditMessage(s *library.Server) library.WildcardTemplateView {
 
 		context := make(map[string]interface{})
 		context["Initial"] = MessageToContext(theMessage.(*models.Message), s)
+		context["DisplayForm"] = DisplayAirDispatchField()
 
 		s.WriteTemplateToContext("compose.html", ctx, context)
 	}

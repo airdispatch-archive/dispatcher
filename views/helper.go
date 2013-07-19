@@ -9,9 +9,11 @@ import (
 	"airdispat.ch/common"
 	"errors"
 	"strconv"
+	"strings"
 )
 
-const noEncryption = "none"
+const DispatcherTextEditor = "text_input"
+const DispatcherTextArea = "textarea"
 
 func GetLoggedInUser(s *library.Server, ctx *web.Context) (*models.User) {
 	session, err := s.GetMainSession(ctx)
@@ -124,12 +126,17 @@ func GetContextFromPayload(content []*airdispatch.MailData_DataType) []map[strin
 	allContent := make([]map[string]interface{}, len(content))
 
 	for i, v := range(content) {
-		allContent[i] = map[string]interface{} {
+		theObject := map[string]interface{} {
 			"TypeName": v.TypeName,
 			"Payload": string(v.Payload),
+			"Editor": DispatcherTextEditor,
 		}
 
-		// TODO: Change the Field Type Here...
+		if strings.Contains(*v.TypeName, "content") || strings.Contains(*v.TypeName, "text") {
+			theObject["Editor"] = DispatcherTextArea
+		}
+
+		allContent[i] = theObject
 	}
 
 	return allContent
