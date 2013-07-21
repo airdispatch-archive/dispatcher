@@ -119,6 +119,8 @@ func defineRoutes(s *library.Server) {
 	s.WebServer.Get("/message/([0-9]*)/edit", views.WildcardTemplateLoginRequired(s, views.DisplayEditMessage(s)))
 	s.WebServer.Post("/message/([0-9]*)/edit", views.WildcardTemplateLoginRequired(s, views.UpdateMessage(s)))
 
+	s.WebServer.Get("/message/([0-9]*)/delete", views.WildcardTemplateLoginRequired(s, views.DeleteMessage(s)))
+
 	s.WebServer.Get("/account/tracker_registration", views.TemplateLoginRequired(s, views.RegisterWithTrackers(s)))
 
 	s.WebServer.Get("/login", s.DisplayTemplate("login.html"))

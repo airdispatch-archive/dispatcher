@@ -208,6 +208,23 @@ func ShowMessage(s *library.Server) library.WildcardTemplateView {
 	}
 }
 
+func DeleteMessage(s *library.Server) library.WildcardTemplateView {
+	return func(ctx *web.Context, val string) {
+		theMessage, err := s.DbMap.Get(models.Message{}, val)
+		if err != nil {
+			ctx.WriteString("ERROR: " + err.Error())
+		}
+
+		count, err := s.DbMap.Delete(theMessage)
+		if err != nil || count != 1 {
+			ctx.WriteString("ERROR: " + err.Error())
+			return
+		}
+
+		ctx.Redirect(303, "/")
+	}
+}
+
 func displayMessage(s *library.Server, m *models.Message, ctx *web.Context) {
 	context := make(map[string]interface{})
 	context["Message"] = MessageToContext(m, s)

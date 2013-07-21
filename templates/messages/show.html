@@ -19,7 +19,7 @@
 			<div class="btn btn-mini"><i class="icon-mail-forward"></i> Forward</div>
 		</div>
 		<div class="btn-group">
-			<div class="btn btn-mini btn-danger"><i class="icon-remove"></i> Delete</div>
+			<a href="/message/{{ .Message.ID }}/delete" class="btn btn-mini btn-danger"><i class="icon-remove"></i> Delete</a>
 		</div>
 	</div>
 
@@ -33,10 +33,10 @@
 	<!-- Content -->
 	{{ range .Message.Content }}
 		<div class="row">
-			<div class="span2">
+			<div class="span3">
 				<strong>{{ .TypeName }}</strong>:
 			</div>
-			<div class="span8">
+			<div class="span7">
 				{{ .Payload }}
 			</div>
 		</div>
