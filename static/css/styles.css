@@ -1,46 +1,137 @@
 body {
-	font-family: "Open Sans", "Helvetica", "Arial", sans-serif;
-	color: #0d0a1a;
+	background-color: #bbb;
 }
-
-.right-align {
-	text-align: right;
+.lander h3, .lander p {
+	margin-left: 15px;
+	margin-right: 15px;
 }
-
-.center-align {
-	text-align: center;
+.container.main {
+	background-color: white;
+	padding-top: 60px;
 }
-
-hr {
+.compose-button {
+	width: 116px;
+}
+#status_main {
+	width: 640px;
+	max-width: 640px;
+	float: left;
+	height: 60px;
+	margin-bottom: 0px;
+}
+#status_to {
+	margin-top: -1px;
+	float: left;
+}
+#status_to input {
+	width: 609px;
+}
+#status_submit {
+	width: 80px;
+	margin-left: 10px;
+	height: 99px;
+}
+.channel_block {
+	margin-bottom: 15px;
+	padding: 10px;
+	-webkit-transition: background-color .25s linear;
+}
+.channel_block.channel_block:hover {
+	background-color: #e0e0e0;
+	color: black;
+}
+.channel_block h5 {
 	margin: 0;
 }
-
-.message {
-	padding: 5px;
+.channel_block {
+	height: 245px;
+	overflow: scroll;
 }
-
-.message:hover {
-	background-color: #eee;
+.channel_block.small_block {
+	height: 100px;
+	overflow: hidden;
 }
-
-.toolbar {
-	padding: 5px;
-	padding-top: 6px;
-	margin-bottom: 10px;
-	background-color: #eee;
+.channel_block.small_block img {
+	margin-left: -10px;
+	margin-top: -10px;
+	height: 120px;
 }
-
-.toolbar .mini {
+.channel_block.medium_block {
+	height: 105px;
+	overflow: hidden;
+}
+.channel_block img {
+	float: left;
+	padding-right: 10px;
+}
+.news .item img {
+	margin-left: -10px;
+	height: 90px;
+}
+.channel_block.grey {
+	background-color: #ddd;
+}
+.channel_block.green {
+	background-color: #4ac526;
+	color: white;
+}
+.channel_block.blue {
+	background-color: #4584ff;
+	color: white;
+}
+.channel_block.red {
+	background-color: #fc2b36;
+	color: white;
+}
+.channel_block .no-margin p, .channel_block .no-margin h3 {
+	margin: 0;
+}
+.dashboard h1 {
+	margin-bottom: 0;
+}
+.news .item {
+	margin-top: 5px;
+}
+.news .item p {
+	margin: 0;
+}
+.news .item p.from {
+	margin: 0;
+	font-weight: bold;
 	font-size: 12px;
 }
-
-.extra-padding {
-	margin-bottom: 10px;
+.small {
+	font-size: 12px;
+	color: #888;
 }
-
-div.btn a {
-	color: #333;
+.footer {
+	font-size: 12px;
+	color: #999;
+	text-align: right;
+	margin-bottom: 1em;
 }
-div.btn a:hover {
-	text-decoration: none;
+.footer p {
+	margin: 0;
+}
+.footer .small {
+	font-size: 8px;
+}
+.landing-hero {
+	margin-top: -30px;
+	position: relative;
+}
+.landing-hero img {
+	margin-top: -30px;
+}
+.landing-hero .text {
+	position: absolute;
+	top: 180px;
+	text-align: center;
+	width: 800px;
+	margin-left: 70px;
+}
+.landing-hero .text h1 {
+	line-height: 150%;
+	font-weight: bold;
+	color: white;
 }

@@ -2,12 +2,100 @@
 
 {{ define "title" }}The Dashboard :: Last 7 Days{{ end }}
 
+{{ define "logged_out_nav" }}style="display:none;"{{end}}
+{{ define "logged_in_nav" }}{{end}}
+
+{{ define "full_body" }}{{end}}
+
 {{ define "shownav" }}{{ end }}
 
 {{ define "body" }}
 	<!-- Toolbar -->
-	<div class="toolbar">
+	<!-- <div class="toolbar">
 		<span class="mini">Current Address: <strong>{{ .User.Address }}</strong></span><br/>
+	</div> -->
+
+	
+	<div class="row">
+		<div class="span10">
+			<form>
+				<textarea placeholder="Enter a Status" id="status_main"></textarea>
+				<div class="input-prepend" id="status_to">
+					<span class="add-on">To:</span>
+					<input placeholder="Public" type="text"></textarea>
+				</div>
+				<input type="submit" class="btn btn-info" id="status_submit">
+			</form>
+		</div>
+	</div>
+	<div class="row">
+		<div class="span8 dashboard">
+			<h1>Dashboard <span class="small"><a href="#"><i class="icon-plus"></i> Edit Channels</span></a></h1>
+			<div class="row">
+				<div class="span4">
+					<div class="channel_block medium_block green">
+						<!-- <a href="" class="btn btn-warning btn-mini pull-right">Go to Folder &rarr;</a> -->
+						<h5>News</h5>
+						<div class="news">
+							<div class="item">
+								<img src="https://si0.twimg.com/profile_images/2044921128/finals.png" class=""/>
+								<p class="from">NYTimes</p>
+								<p>How interval training can make you more productive at work <a href="#">&rarr;</a></p>
+							</div>
+						</div>
+					</div>
+					<div class="channel_block medium_block red">
+						<!-- <a href="" class="btn btn-warning btn-mini pull-right">Go to Folder &rarr;</a> -->
+						<h5>Family</h5>
+						<div class="news">
+							<div class="item">
+								<img src="https://sphotos-b.xx.fbcdn.net/hphotos-frc1/905326_632322586782787_1804045057_o.jpg" class=""/>
+								<p class="from">Austin Leath</p>
+								<p>Do we have dinner plans yet? <a href="#">&rarr;</a></p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="span4">
+					<div class="channel_block blue">
+						<!-- <a href="" class="btn btn-warning btn-mini pull-right">Go to Conversation &rarr;</a> -->
+						<h5>The Group</h5>
+						<div class="news">
+							<div class="item">
+								<img src="https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-ash3/240626_10151164156693363_120474922_o.jpg" style="height: 100px; " class=""/>
+								<p>How interval training can make you more productive at work</p>
+								<p class="from">- NYTimes</p>
+							</div>
+							<div class="item">
+								<p>How interval training can make you more productive at work</p>
+								<p class="from">- NYTimes</p>
+							</div>
+							<div class="item">
+								<p>How interval training can make you more productive at work</p>
+								<p class="from">- NYTimes</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row notification">
+			<div class="span8">
+				<div class="channel_block small_block grey">
+					<img src="https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-ash3/240626_10151164156693363_120474922_o.jpg"/>
+					<div class="btn btn-warning pull-right" style="height: 90px;">
+						&rarr;
+					</div>
+					<div class="channel_inner no-margin">
+						<h3>Dalton Sherwood</h3>
+						<p>Subject: <b>Hello, There</b></p>
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+		<div class="span2">
+			<h3>Stats</h3>
+		</div>
 	</div>
 
 	{{ $display := .DisplayTag }}

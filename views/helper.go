@@ -1,13 +1,13 @@
 package views
 
 import (
+	"airdispat.ch/airdispatch"
+	"airdispat.ch/common"
+	"code.google.com/p/goprotobuf/proto"
+	"errors"
 	"github.com/airdispatch/dispatcher/models"
 	library "github.com/airdispatch/go-pressure"
 	"github.com/hoisie/web"
-	"code.google.com/p/goprotobuf/proto"
-	"airdispat.ch/airdispatch"
-	"airdispat.ch/common"
-	"errors"
 	"strconv"
 	"strings"
 )
@@ -15,7 +15,7 @@ import (
 const DispatcherTextEditor = "text_input"
 const DispatcherTextArea = "textarea"
 
-func GetLoggedInUser(s *library.Server, ctx *web.Context) (*models.User) {
+func GetLoggedInUser(s *library.Server, ctx *web.Context) *models.User {
 	session, err := s.GetMainSession(ctx)
 
 	if session.Values[LoginSessionMapKey] == nil || session.Values[LoginSessionMapKey] == "" || session.Values[LoginSessionMapKey] == -1 {
@@ -40,7 +40,7 @@ func GetLoggedInUser(s *library.Server, ctx *web.Context) (*models.User) {
 func WildcardTemplateLoginRequired(s *library.Server, t library.WildcardTemplateView) library.WildcardTemplateView {
 	return func(ctx *web.Context, val string) {
 		u := GetLoggedInUser(s, ctx)
-		if (u != nil) {
+		if u != nil {
 			t(ctx, val)
 		} else {
 			ctx.Redirect(303, "/login")
@@ -51,10 +51,21 @@ func WildcardTemplateLoginRequired(s *library.Server, t library.WildcardTemplate
 func TemplateLoginRequired(s *library.Server, t library.TemplateView) library.TemplateView {
 	return func(ctx *web.Context) {
 		u := GetLoggedInUser(s, ctx)
-		if (u != nil) {
+		if u != nil {
 			t(ctx)
 		} else {
 			ctx.Redirect(303, "/login")
+		}
+	}
+}
+
+func HomePage(s *library.Server, t library.TemplateView) library.TemplateView {
+	return func(ctx *web.Context) {
+		u := GetLoggedInUser(s, ctx)
+		if u != nil {
+			t(ctx)
+		} else {
+			s.WriteTemplateToContext("landing.html", ctx, nil)
 		}
 	}
 }
@@ -69,12 +80,12 @@ func LogoutView(s *library.Server) library.TemplateView {
 }
 
 func MailToMessage(a *airdispatch.Mail, from string) *models.Message {
-	return &models.Message {
-		Id: 0,
-		ToAddress: a.GetToAddress(),
+	return &models.Message{
+		Id:          0,
+		ToAddress:   a.GetToAddress(),
 		FromAddress: from,
-		Timestamp: int64(a.GetTimestamp()),
-		Content: a.GetData(),
+		Timestamp:   int64(a.GetTimestamp()),
+		Content:     a.GetData(),
 	}
 }
 
@@ -125,11 +136,11 @@ func UnmarshalMessagePayload(message *airdispatch.Mail) []*airdispatch.MailData_
 func GetContextFromPayload(content []*airdispatch.MailData_DataType) []map[string]interface{} {
 	allContent := make([]map[string]interface{}, len(content))
 
-	for i, v := range(content) {
-		theObject := map[string]interface{} {
+	for i, v := range content {
+		theObject := map[string]interface{}{
 			"TypeName": v.TypeName,
-			"Payload": string(v.Payload),
-			"Editor": DispatcherTextEditor,
+			"Payload":  string(v.Payload),
+			"Editor":   DispatcherTextEditor,
 		}
 
 		if strings.Contains(*v.TypeName, "content") || strings.Contains(*v.TypeName, "text") {
@@ -147,9 +158,9 @@ func ContextToDataTypeBytes(ctx *web.Context) ([]byte, error) {
 		return nil, errors.New("The Context doesn't have enough Fields")
 	}
 
-	content_types := make([]*airdispatch.MailData_DataType, (len(ctx.Params) - 1) / 2)
+	content_types := make([]*airdispatch.MailData_DataType, (len(ctx.Params)-1)/2)
 
-	for key, value := range(ctx.Params) {
+	for key, value := range ctx.Params {
 		if key != "to_address" {
 			// content[index][type]
 			i := contentRegex.FindAllStringSubmatch(key, -1)[0]
@@ -161,7 +172,7 @@ func ContextToDataTypeBytes(ctx *web.Context) ([]byte, error) {
 
 			theData := content_types[typeIndex]
 			if theData == nil {
-				theData = &airdispatch.MailData_DataType {}
+				theData = &airdispatch.MailData_DataType{}
 			}
 
 			if i[2] == "0" {

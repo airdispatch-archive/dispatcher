@@ -1,22 +1,23 @@
 package views
 
 import (
-	"github.com/hoisie/web"
-	"github.com/airdispatch/dispatcher/models"
-	library "github.com/airdispatch/go-pressure"
-	"airdispat.ch/common"
 	"airdispat.ch/airdispatch"
 	cf "airdispat.ch/client/framework"
+	"airdispat.ch/common"
 	sf "airdispat.ch/server/framework"
 	"code.google.com/p/goprotobuf/proto"
 	"encoding/hex"
-	"time"
 	"fmt"
+	"github.com/airdispatch/dispatcher/models"
+	library "github.com/airdispatch/go-pressure"
+	"github.com/hoisie/web"
 	"regexp"
 	"strconv"
+	"time"
 )
 
 type ViewHandler func(ctx *web.Context)
+
 var no_encryption string = "none"
 var blog_title string = "blog/title"
 var blog_content string = "blog/content"
@@ -55,14 +56,14 @@ func CreateMessage(s *library.Server) library.TemplateView {
 			// Create Server Instance
 			newServer := sf.Server{
 				LocationName: s.Mailserver,
-				Key: sending_user.LoadedKey,
-				Delegate: sf.BasicServer{},
+				Key:          sending_user.LoadedKey,
+				Delegate:     sf.BasicServer{},
 			}
 
 			// Get the Tracker List
 			trackerList, _ := models.GetTrackerList(s.DbMap)
 			stringTrackers := make([]string, len(trackerList))
-			for i, v := range(trackerList) {
+			for i, v := range trackerList {
 				stringTrackers[i] = v.URL
 			}
 
@@ -112,14 +113,14 @@ func ShowSubscriptions(s *library.Server) library.TemplateView {
 		theUser := GetLoggedInUser(s, ctx)
 
 		var theMessages []*models.Subscription
-		s.DbMap.Select(&theMessages, "select * from dispatch_subscriptions where \"user\"=" + strconv.FormatInt(theUser.Id, 10))
+		s.DbMap.Select(&theMessages, "select * from dispatch_subscriptions where \"user\"="+strconv.FormatInt(theUser.Id, 10))
 
 		context := make(map[string]interface{})
 		context["Subscriptions"] = theMessages
 
 		context["DisplayTag"] = DisplayAirDispatchAddress(s)
 
-		s.WriteTemplateToContext("subscribe.html", ctx, context)
+		s.WriteTemplateToContext("account/subscribe.html", ctx, context)
 	}
 }
 
@@ -127,10 +128,10 @@ func CreateSubscription(s *library.Server) library.TemplateView {
 	return func(ctx *web.Context) {
 		to_address := ctx.Params["to_address"]
 		sending_user := GetLoggedInUser(s, ctx)
-		theSubscription := &models.Subscription {
+		theSubscription := &models.Subscription{
 			SubscribedAddress: to_address,
-			User: sending_user.Id,
-			Note: "",
+			User:              sending_user.Id,
+			Note:              "",
 		}
 		s.DbMap.Insert(theSubscription)
 		ctx.Redirect(303, "/")
@@ -149,12 +150,12 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 
 		if folderName == "Sent Messages" {
 			var theMessages []*models.Message
-			s.DbMap.Select(&theMessages, "select * from dispatch_messages where sendinguser=" + strconv.FormatInt(current_user.Id, 10) + " order by timestamp DESC")
+			s.DbMap.Select(&theMessages, "select * from dispatch_messages where sendinguser="+strconv.FormatInt(current_user.Id, 10)+" order by timestamp DESC")
 			context["Messages"] = theMessages
 			context["BasePrefix"] = "message"
 		} else if folderName == "Inbox" {
 			var theMessages []*models.Alert
-			s.DbMap.Select(&theMessages, "select * from dispatch_alerts where touser=" + strconv.FormatInt(current_user.Id, 10) + "order by timestamp DESC")
+			s.DbMap.Select(&theMessages, "select * from dispatch_alerts where touser="+strconv.FormatInt(current_user.Id, 10)+"order by timestamp DESC")
 			context["Messages"] = theMessages
 		}
 
@@ -175,7 +176,7 @@ func ShowAlert(s *library.Server) library.WildcardTemplateView {
 			return
 		}
 
-		unMarshalledAlert :=  &airdispatch.Alert{}
+		unMarshalledAlert := &airdispatch.Alert{}
 		err = proto.Unmarshal(readMessage.Payload, unMarshalledAlert)
 		if err != nil {
 			ctx.WriteString("Malformed Alert")
@@ -240,14 +241,14 @@ func Dashboard(s *library.Server) library.TemplateView {
 		context["User"] = theUser
 
 		var theMessages []*models.Subscription
-		s.DbMap.Select(&theMessages, "select * from dispatch_subscriptions where \"user\"=" + strconv.FormatInt(theUser.Id, 10))
+		s.DbMap.Select(&theMessages, "select * from dispatch_subscriptions where \"user\"="+strconv.FormatInt(theUser.Id, 10))
 
-		theClient := &cf.Client {}
+		theClient := &cf.Client{}
 		theClient.Populate(theUser.LoadedKey)
 
 		trackerList, _ := models.GetTrackerList(s.DbMap)
 		stringTrackers := make([]string, len(trackerList))
-		for i, v := range(trackerList) {
+		for i, v := range trackerList {
 			stringTrackers[i] = v.URL
 		}
 
@@ -255,7 +256,7 @@ func Dashboard(s *library.Server) library.TemplateView {
 
 		outputMail := make([]*airdispatch.Mail, 0)
 
-		for _, value := range(theMessages) {
+		for _, value := range theMessages {
 			downloadedMail, err := theClient.DownloadPublicMail(stringTrackers, value.SubscribedAddress, uint64(pastMonth.Unix()))
 			if err != nil {
 				continue

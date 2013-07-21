@@ -1,13 +1,13 @@
 package main
 
 import (
-	_ "github.com/lib/pq"
-	"os"
 	"flag"
 	"fmt"
-	library "github.com/airdispatch/go-pressure"
-	"github.com/airdispatch/dispatcher/views"
 	"github.com/airdispatch/dispatcher/models"
+	"github.com/airdispatch/dispatcher/views"
+	library "github.com/airdispatch/go-pressure"
+	_ "github.com/lib/pq"
+	"os"
 	// "airdispat.ch/common"
 )
 
@@ -31,11 +31,11 @@ func main() {
 		return
 	}
 
-	theServer := &library.Server {
-		Port: temp_port,
-		DbMap: dbMap,
+	theServer := &library.Server{
+		Port:            temp_port,
+		DbMap:           dbMap,
 		MainSessionName: "dispatcher-session",
-		Mailserver: *me,
+		Mailserver:      *me,
 	}
 
 	// Flush the Database
@@ -101,7 +101,7 @@ func main() {
 }
 
 func defineRoutes(s *library.Server) {
-	s.WebServer.Get("/", views.TemplateLoginRequired(s, views.Dashboard(s)))
+	s.WebServer.Get("/", views.HomePage(s, views.Dashboard(s)))
 
 	s.WebServer.Get("/compose", views.TemplateLoginRequired(s, s.DisplayTemplate("compose.html")))
 	s.WebServer.Post("/compose", views.TemplateLoginRequired(s, views.CreateMessage(s)))
@@ -110,10 +110,10 @@ func defineRoutes(s *library.Server) {
 	s.WebServer.Post("/subscribe", views.TemplateLoginRequired(s, views.CreateSubscription(s)))
 
 	s.WebServer.Get("/inbox", views.TemplateLoginRequired(s, views.ShowFolder(s, "Inbox")))
-	s.WebServer.Get("/sent", views.TemplateLoginRequired(s, views.ShowFolder(s, "Sent Messages")))
+	s.WebServer.Get("/profile", views.TemplateLoginRequired(s, s.DisplayTemplate("account/profile.html")))
 
 	s.WebServer.Get("/alert/([0-9]*)", views.WildcardTemplateLoginRequired(s, views.ShowAlert(s)))
-	
+
 	s.WebServer.Get("/message/([0-9]*)", views.WildcardTemplateLoginRequired(s, views.ShowMessage(s)))
 
 	s.WebServer.Get("/message/([0-9]*)/edit", views.WildcardTemplateLoginRequired(s, views.DisplayEditMessage(s)))
