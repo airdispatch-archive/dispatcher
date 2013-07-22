@@ -110,7 +110,7 @@ func defineRoutes(s *library.Server) {
 	s.WebServer.Post("/subscribe", views.TemplateLoginRequired(s, views.CreateSubscription(s)))
 
 	s.WebServer.Get("/inbox", views.TemplateLoginRequired(s, views.ShowFolder(s, "Inbox")))
-	s.WebServer.Get("/profile", views.TemplateLoginRequired(s, s.DisplayTemplate("account/profile.html")))
+	s.WebServer.Get("/profile", views.TemplateLoginRequired(s, views.ShowFolder(s, "Profile")))
 
 	s.WebServer.Get("/alert/([0-9]*)", views.WildcardTemplateLoginRequired(s, views.ShowAlert(s)))
 

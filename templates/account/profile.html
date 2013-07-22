@@ -10,33 +10,47 @@
 {{ define "shownav" }}{{ end }}
 
 {{ define "body" }}
+	{{ $time := .TimeFunction }}
+	{{ $prefix := .BasePrefix }}
 	<div class="row">
 		<div class="span3">
 			<img class="img-polaroid" src="https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg"/>
 		</div>
 		<div class="span7">
-			<h1>Hunter Leath</h1>
-			<p>Current Address: <b>797aaefc5b268ff4c58b6297abfe06a5ee4e6a382d7cf6e8</b></p>
+			<h1>{{ .User.FullName }}</h1>
+			<p>Current Address: <strong>{{ .User.Address }}</strong></p>
 			<a href="#" class="btn btn-mini btn-warning"><i class="icon-camera"></i> Change Picture</a>
 			<a href="#" class="btn btn-mini btn-warning"><i class="icon-refresh"></i> New Address</a>
 		</div>
 	</div>
 	<div class="row">
-		<div class="span5">
+		<div class="span5 padder">
 			<h2>Public Messages</h2>
-			<div class="channel_block grey no-margin" style="height: auto;">
-				<h5 class="muted pull-right">11:55 PM</h5>
-				<h5>Blog Post</h5>
-				<p>At once did I notice my surroundings...</p>
-			</div>
+			{{ range .PublicMessages }}
+				<a href="/{{ $prefix }}/{{ .Id }}">
+					<div class="channel_block grey no-margin" style="height: auto;">
+						<h5 class="muted pull-right">{{ call $time .Timestamp }}</h5>
+						<h5>Public Message</h5>
+						<p></p>
+					</div>
+				</a>
+			{{ else }}
+				<p>No messages here.</p>
+			{{ end }}
 		</div>
-		<div class="span5">
+		<div class="span5 padder">
 			<h2>Individual Messages</h2>
-			<div class="channel_block grey no-margin" style="height: auto;">
-				<h5 class="muted pull-right">11:55 PM</h5>
-				<h5>To <b>797aaefc5b268ff4c58b6297abfe06a5ee4e6a382d7cf6e8</b></h5>
-				<p>At once did I notice my surroundings...</p>
-			</div>
+			{{ range .Messages }}
+				<a href="/{{ $prefix }}/{{ .Id }}">
+					<div class="channel_block grey no-margin" style="height: auto; margin-right: 10px;">
+						<h5 class="muted pull-right">{{ call $time .Timestamp }}</h5>
+						<h5>To <b>{{ .ToAddress }}</b></h5>
+						<p></p>
+					</div>
+				</a>
+			{{ else }}
+				<p>No messages here.</p>
+			{{ end }}
 		</div>
 	</div>
 {{ end }}

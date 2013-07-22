@@ -147,19 +147,27 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 		context["BasePrefix"] = "alert"
 
 		current_user := GetLoggedInUser(s, ctx)
+		context["User"] = current_user
 
-		if folderName == "Sent Messages" {
+		if folderName == "Profile" {
+			// Get profile individual messages
 			var theMessages []*models.Message
-			s.DbMap.Select(&theMessages, "select * from dispatch_messages where sendinguser="+strconv.FormatInt(current_user.Id, 10)+" order by timestamp DESC")
+			s.DbMap.Select(&theMessages, "select * from dispatch_messages where sendinguser="+strconv.FormatInt(current_user.Id, 10)+" and toaddress<>'' order by timestamp DESC")
 			context["Messages"] = theMessages
+
+			// Get profile other messages
+			var publicMessages []*models.Message
+			s.DbMap.Select(&publicMessages, "select * from dispatch_messages where sendinguser="+strconv.FormatInt(current_user.Id, 10)+" and toaddress='' order by timestamp DESC")
+			context["PublicMessages"] = publicMessages
+
 			context["BasePrefix"] = "message"
+			s.WriteTemplateToContext("account/profile.html", ctx, context)
 		} else if folderName == "Inbox" {
 			var theMessages []*models.Alert
 			s.DbMap.Select(&theMessages, "select * from dispatch_alerts where touser="+strconv.FormatInt(current_user.Id, 10)+"order by timestamp DESC")
 			context["Messages"] = theMessages
+			s.WriteTemplateToContext("messages/list.html", ctx, context)
 		}
-
-		s.WriteTemplateToContext("messages/list.html", ctx, context)
 	}
 }
 
