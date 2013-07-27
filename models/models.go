@@ -3,12 +3,12 @@ package models
 import (
 	"airdispat.ch/client/framework"
 	"airdispat.ch/common"
-	library "github.com/airdispatch/go-pressure"
-	"github.com/coopernurse/gorp"
+	"bytes"
 	"encoding/hex"
 	"errors"
-	"bytes"
 	"fmt"
+	library "github.com/airdispatch/go-pressure"
+	"github.com/coopernurse/gorp"
 	// "log"
 	"os"
 )
@@ -21,7 +21,7 @@ func ConnectToDB() (*gorp.DbMap, error) {
 	}
 
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
-	// dbmap.TraceOn("[gorp]", log.New(os.Stdout, "editor:", log.Lmicroseconds)) 
+	// dbmap.TraceOn("[gorp]", log.New(os.Stdout, "editor:", log.Lmicroseconds))
 
 	dbmap.AddTableWithName(Message{}, "dispatch_messages").SetKeys(true, "Id")
 	dbmap.AddTableWithName(Alert{}, "dispatch_alerts").SetKeys(true, "Id")
@@ -35,13 +35,13 @@ func ConnectToDB() (*gorp.DbMap, error) {
 }
 
 type User struct { // dispatch_userg
-	Salt string
-	Username string
-	Password string
-	FullName string
-	Keypair []byte
-	Id int64
-	Address string
+	Salt      string
+	Username  string
+	Password  string
+	FullName  string
+	Keypair   []byte
+	Id        int64
+	Address   string
 	LoadedKey *common.ADKey `db:"-"` // This field is transient
 }
 
@@ -62,10 +62,10 @@ func CreateUser(username string, password string, s *library.Server) *User {
 	buf := new(bytes.Buffer)
 	key.GobEncodeKey(buf)
 
-	newUser := &User {
+	newUser := &User{
 		Username: username,
 		Password: HashPassword(password),
-		Keypair: buf.Bytes(),
+		Keypair:  buf.Bytes(),
 	}
 	newUser.Populate()
 
@@ -74,17 +74,17 @@ func CreateUser(username string, password string, s *library.Server) *User {
 	return newUser
 }
 
-func (u  *User) RegisterUserWithTracker(s *library.Server) error {
+func (u *User) RegisterUserWithTracker(s *library.Server) error {
 	theTrackers, err := GetTrackerList(s.DbMap)
 
-	c := &framework.Client {}
+	c := &framework.Client{}
 	c.Populate(u.LoadedKey)
 	c.MailServer = s.Mailserver
 
 	// Convert to tracker list
 	success := false
 
-	for _, v := range(theTrackers) {
+	for _, v := range theTrackers {
 		err = c.SendRegistration(v.URL)
 		if err == nil {
 			success = true
@@ -112,7 +112,7 @@ func GetTrackerList(dbMap *gorp.DbMap) ([]*Tracker, error) {
 
 func GetUserWithAddress(dbMap *gorp.DbMap, address string) (*User, error) {
 	var theUsers []*User
-	_, err := dbMap.Select(&theUsers, "select * from dispatch_users where address='" + address + "'")
+	_, err := dbMap.Select(&theUsers, "select * from dispatch_users where address='"+address+"'")
 	if err != nil {
 		fmt.Println("SQL Error")
 		fmt.Println(err)
@@ -133,53 +133,53 @@ func HashPassword(password string) string {
 	return hex.EncodeToString(common.HashSHA([]byte(password)))
 }
 
-type Mailbox struct {}
+type Mailbox struct{}
 
 type Contact struct {
-	Id int64
-	User int64
+	Id      int64
+	User    int64
 	Address string
-	Name string
+	Name    string
 }
 
 type Message struct {
-	Id int64
-	ToAddress string
+	Id          int64
+	ToAddress   string
 	FromAddress string `db:"-"` // This field is transient
-	Slug string
+	Slug        string
 	MessageType string
-	Timestamp int64
+	Timestamp   int64
 	SendingUser int64
-	Content []byte
+	Content     []byte
 }
 
 type Alert struct {
-	Id int64
-	Content []byte
+	Id        int64
+	Content   []byte
 	ToAddress string
 	Timestamp int64
-	Folder string
-	ToUser int64
+	Folder    string
+	ToUser    int64
 }
 
 type Stream struct {
-	Id int64
-	Message string
-	LinkedUser string
+	Id           int64
+	Message      string
+	LinkedUser   string
 	LinkedObject string
 }
 
 type Subscription struct {
-	Id int64
-	User int64
+	Id                int64
+	User              int64
 	SubscribedAddress string
-	Note string
+	Note              string
 }
 
-type Attatchment struct {}
+type Attatchment struct{}
 
 type Tracker struct { // dispatch_tracker
-	Id int64
-	URL string
+	Id      int64
+	URL     string
 	Address string
 }
