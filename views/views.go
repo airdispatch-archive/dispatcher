@@ -144,6 +144,7 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 		context["FolderName"] = folderName
 
 		context["TimeFunction"] = TimestampToString()
+		context["DisplayTag"] = DisplayAirDispatchAddress(s)
 		context["BasePrefix"] = "alert"
 
 		current_user := GetLoggedInUser(s, ctx)

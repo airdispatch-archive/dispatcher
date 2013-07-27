@@ -27,7 +27,7 @@ func main() {
 	dbMap, err := models.ConnectToDB()
 	if err != nil {
 		fmt.Println("Can't Connect to DB")
-		fmt.Println("err")
+		fmt.Println(err)
 		return
 	}
 
