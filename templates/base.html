@@ -2,49 +2,68 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta charset="utf8">
-		<title>{{ template "head" . }}</title>
-		<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+		<!-- <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet"> -->
+		<link href="//netdna.bootstrapcdn.com/bootswatch/2.3.2/cosmo/bootstrap.min.css" rel="stylesheet">
+		<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
 		<link href="/css/styles.css" rel="stylesheet">
-		<link href='http://fonts.googleapis.com/css?family=Open+Sans:200,400,600,700' rel='stylesheet' type='text/css'><link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.min.css" rel="stylesheet">
-		<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome-ie7.min.css" rel="stylesheet">
+		<title>{{ template "head" . }}</title>
 	</head>
 	<body>
-		<br/>
-		<div class="container">
-			<div class="row">
-				<div class="span2 right-align">
-					<a href="/"><img src="/img/logo.png" width="100px"></a>
-				</div>
-				<div class="span6">
-					<h1>Dispatcher</h1>
-					<h5>{{ template "title" . }}</h5>
+		<div class="navbar">
+			<div class="navbar-inner navbar-fixed-top">
+				<div class="container">
+					<div class="row">
+						<div class="span3">
+							<a class="brand" href="/">Dispatcher</a>
+						</div>
+						<div class="span4 offset5">
+							<ul class="nav pull-right" {{ template "logged_in_nav" }}>
+								<li class="btn-danger"><a href="#">6 <i class="icon-list-ul"></i></a></li>
+								<li class="active"><a href="/">Home</a></li>
+								<li><a href="/logout">Logout</a></li>
+							</ul>
+							<ul class="nav pull-right" {{ template "logged_out_nav" }}>
+								<li><a href="/login">Login</a></li>
+							</ul>
+						</div>
+					</div>
 				</div>
 			</div>
-			<br/>
+		</div>
+		<div class="container main">
 			<div class="row">
-				<div class="span2 right-align" {{ template "shownav" . }}>
-					<a href="/compose" class="btn btn-danger"><i class="icon-edit"></i> Compose</a>
+				<div class="span2" {{ template "shownav" . }}>
+					<a href="/compose" class="btn btn-danger compose-button"><i class="icon-edit"></i> New Message</a>
 					<br/><br/>
 					<ul class="nav nav-list">
+						<li><a href="/inbox"><i class="icon-inbox"></i> All Messages</a></li>
+						<li><a href="/profile"><i class="icon-bullhorn"></i> About Me</a></li>
+						<li class="divider"></li>
 						<li class="nav-header">Folders</li>
-						<li><a href="/inbox">Inbox</a></li>
-						<li><a href="/sent">Sent</a></li>
+						<li><a href="/events"><i class="icon-calendar"></i> Events</a></li>
+						<li><a href="/notes"><i class="icon-comments"></i> Notes</a></li>
 						<li class="divider"></li>
 						<li class="nav-header">Actions</li>
-						<li><a href="/subscribe">Subscribe</a></li>
-						<li><a href="#">New Folder</a></li>
+						<li><a href="/subscribe"><i class="icon-magnet"></i> Subscribe</a></li>
+						<li><a href="#"><i class="icon-plus"></i> New Folder</a></li>
 						<li class="divider"></li>
-						<li><a href="/account/tracker_registration">Register <i class="icon-flag"></i></a></li>
-						<li><a href="/logout">Logout</a></li>
+						<li><a href="/account/tracker_registration"><i class="icon-flag"></i> Register</a></li>
 					</ul>
 				</div>
 				<div class="span10">
 					{{ template "body" . }}
 				</div>
 			</div>
+			{{ template "full_body" . }}
+			<hr/>
+			<div class="row footer" style="">
+				<div class="span12">
+					<p>Dispatcher is provided by the <a href="#">Airdispatch Foundation</a> &nbsp;</p>
+					<p class="small">Theme by <a href="http://thomaspark.me">Thomas Park</a>. Based on <a href="http://twitter.github.com/bootstrap/">Bootstrap</a>. Hosted on <a href="http://pages.github.com/">GitHub</a>. Icons from <a href="http://fortawesome.github.com/Font-Awesome/">Font Awesome</a>. Web fonts from <a href="http://www.google.com/webfonts">Google</a> &nbsp;</p>
+				</div>
+			</div>
 		</div>
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 		<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 		<script src="/js/application.js"></script>
 	</body>

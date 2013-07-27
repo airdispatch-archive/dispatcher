@@ -2,6 +2,11 @@
 
 {{ define "title" }}Subscribe to Newsletter{{ end }}
 
+{{ define "logged_out_nav" }}style="display:none;"{{end}}
+{{ define "logged_in_nav" }}{{end}}
+
+{{ define "full_body" }}{{end}}
+
 {{ define "shownav" }}{{ end }}
 
 {{ define "body" }}
@@ -9,11 +14,11 @@
 	{{ $d := .DisplayTag }}
 	{{ range .Subscriptions }}
 		<div class="row extra-padding">
-			<div class="span9">
+			<div class="span7">
 				{{ call $d .SubscribedAddress }}
 			</div>
 			<div class="span1">
-				<button class="btn btn-danger span1 btn-remove"><i class="icon-remove"></i></button>
+				<button class="btn btn-danger btn-remove"><i class="icon-remove"></i></button>
 			</div>
 		</div>
 	{{ else }}

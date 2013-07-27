@@ -2,22 +2,106 @@
 
 {{ define "title" }}The Dashboard :: Last 7 Days{{ end }}
 
+{{ define "logged_out_nav" }}style="display:none;"{{end}}
+{{ define "logged_in_nav" }}{{end}}
+
+{{ define "full_body" }}{{end}}
+
 {{ define "shownav" }}{{ end }}
 
 {{ define "body" }}
 	<!-- Toolbar -->
-	<div class="toolbar">
+	<!-- <div class="toolbar">
 		<span class="mini">Current Address: <strong>{{ .User.Address }}</strong></span><br/>
+	</div> -->
+
+
+	<div class="row">
+		<div class="span10">
+			<form>
+				<textarea placeholder="Enter a Status" id="status_main"></textarea>
+				<div class="input-prepend" id="status_to">
+					<span class="add-on">To:</span>
+					<input placeholder="Public" type="text"></textarea>
+				</div>
+				<input type="submit" class="btn btn-info" id="status_submit">
+			</form>
+		</div>
 	</div>
+	<div class="row">
+		<div class="span8 dashboard">
+			<h1>Dashboard <span class="small"><a href="#"><i class="icon-plus"></i> Edit Channels</span></a></h1>
+			<div class="row">
+				<div class="span4">
+					<h5>News</h5>
+					<div class="channel_block medium_block green">
+						<!-- <a href="" class="btn btn-warning btn-mini pull-right">Go to Folder &rarr;</a> -->
+						<div class="news">
+							<img src="https://si0.twimg.com/profile_images/2044921128/finals.png" class=""/>
+							<div class="item">
+								<p class="from">NYTimes</p>
+								<p>How interval training can make you more productive at work. <a href="#">&rarr;</a></p>
+							</div>
+						</div>
+					</div>
+					<h5>Family</h5>
+					<div class="channel_block medium_block red">
+						<!-- <a href="" class="btn btn-warning btn-mini pull-right">Go to Folder &rarr;</a> -->
+						<div class="news">
+							<img src="https://si0.twimg.com/profile_images/3597061234/a205c5440353bf8793a7ed5d5fcd1c44.jpeg" class=""/>
+							<div class="item">
+								<p class="from">Austin Leath</p>
+								<p>Do we have dinner plans yet? <a href="#">&rarr;</a></p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="span4">
+					<h5>The Group</h5>
+					<div class="channel_block blue">
+						<!-- <a href="" class="btn btn-warning btn-mini pull-right">Go to Conversation &rarr;</a> -->
+						<div class="news">
+							<div class="item">
+								<p class="from">Hunter Leath</p>
+								<p>Let's talk about Tuesday!</p>
+							</div>
+							<div class="item">
+								<p class="from">Tyler Stern</p>
+								<p>ahhh not right there</p>
+							</div>
+							<div class="item">
+								<p class="from">Hunter Leath</p>
+								<p>Let's talk about Tuesday!</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row notification">
+				<div class="span8">
+					<div class="channel_block small_block grey">
+						<img src="https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-ash3/240626_10151164156693363_120474922_o.jpg"/>
+						<div class="btn btn-warning pull-right" style="height: 90px;">
+							&rarr;
+						</div>
+						<div class="channel_inner no-margin">
+							<h3>Dalton Sherwood</h3>
+							<p>Subject: <b>Hello, There</b></p>
+						</div>
+					</div>
+				</div>
+			</div>
 
-	{{ $display := .DisplayTag }}
+			{{ $display := .DisplayTag }}
 
-	<hr/>
-	{{ range .Messages }}
-		{{ call $display . }}
-		<hr/>
-	{{ else }}
-		<p>Your dashboard is empty. Why don't you go ahead and <a href="/subscribe">subscribe</a> to some of your friends?</p>
-	{{ end }}
-
+			{{ range .Messages }}
+				{{ call $display . }}
+			{{ else }}
+				<p>Your dashboard is empty. Why don't you go ahead and <a href="/subscribe">subscribe</a> to some of your friends?</p>
+			{{ end }}
+		</div>
+		<div class="span2">
+			<h3>Stats</h3>
+		</div>
+	</div>
 {{ end }}
