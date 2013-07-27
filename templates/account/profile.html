@@ -11,6 +11,7 @@
 
 {{ define "body" }}
 	{{ $time := .TimeFunction }}
+	{{ $address := .DisplayTag }}
 	{{ $prefix := .BasePrefix }}
 	<div class="row">
 		<div class="span3">
@@ -44,7 +45,7 @@
 				<a href="/{{ $prefix }}/{{ .Id }}">
 					<div class="channel_block grey no-margin" style="height: auto; margin-right: 10px;">
 						<h5 class="muted pull-right">{{ call $time .Timestamp }}</h5>
-						<h5>To <b>{{ .ToAddress }}</b></h5>
+						<h5>To <b>{{ call $address .ToAddress }}</b></h5>
 						<p></p>
 					</div>
 				</a>

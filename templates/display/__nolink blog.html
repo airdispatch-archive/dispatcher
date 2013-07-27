@@ -1,11 +1,17 @@
 {{ define "generic" }}
-	<div class="row">
-		<div class="span6">
-			<p>{{ call .DisplayAddress .FromAddress }}</p>
-		</div>
-		<div class="span4">
-			<p>Friday, October 5th at 11:05 PM</p>
+	<div class="row notification">
+		<div class="span8">
+			<div class="channel_block small_block grey">
+				<img src="https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-ash3/240626_10151164156693363_120474922_o.jpg"/>
+				<div class="btn btn-warning pull-right" style="height: 90px;">
+					&rarr;
+				</div>
+				<div class="channel_inner no-margin">
+					<p class="pull-right muted">{{ . }}</p>
+					<h4>{{ call .DisplayAddress .FromAddress }}</h4>
+					<p>{{ call .GetContent "airdispat.ch/blog/title" }}</p>
+				</div>
+			</div>
 		</div>
 	</div>
-	<h3>{{ call .GetContent "blog/title" }}</h3>
 {{ end }}

@@ -78,33 +78,30 @@
 				</div>
 			</div>
 			<div class="row notification">
-			<div class="span8">
-				<div class="channel_block small_block grey">
-					<img src="https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-ash3/240626_10151164156693363_120474922_o.jpg"/>
-					<div class="btn btn-warning pull-right" style="height: 90px;">
-						&rarr;
-					</div>
-					<div class="channel_inner no-margin">
-						<h3>Dalton Sherwood</h3>
-						<p>Subject: <b>Hello, There</b></p>
+				<div class="span8">
+					<div class="channel_block small_block grey">
+						<img src="https://fbcdn-sphotos-e-a.akamaihd.net/hphotos-ak-ash3/240626_10151164156693363_120474922_o.jpg"/>
+						<div class="btn btn-warning pull-right" style="height: 90px;">
+							&rarr;
+						</div>
+						<div class="channel_inner no-margin">
+							<h3>Dalton Sherwood</h3>
+							<p>Subject: <b>Hello, There</b></p>
+						</div>
 					</div>
 				</div>
 			</div>
-			</div>
+
+			{{ $display := .DisplayTag }}
+
+			{{ range .Messages }}
+				{{ call $display . }}
+			{{ else }}
+				<p>Your dashboard is empty. Why don't you go ahead and <a href="/subscribe">subscribe</a> to some of your friends?</p>
+			{{ end }}
 		</div>
 		<div class="span2">
 			<h3>Stats</h3>
 		</div>
 	</div>
-
-	{{ $display := .DisplayTag }}
-
-	<hr/>
-	{{ range .Messages }}
-		{{ call $display . }}
-		<hr/>
-	{{ else }}
-		<p>Your dashboard is empty. Why don't you go ahead and <a href="/subscribe">subscribe</a> to some of your friends?</p>
-	{{ end }}
-
 {{ end }}
