@@ -4,17 +4,18 @@ import (
 	"code.google.com/p/goprotobuf/proto"
 	"github.com/coopernurse/gorp"
 	// "github.com/airdispatch/dispatcher/library"
-	"github.com/airdispatch/dispatcher/models"
-	"airdispat.ch/server/framework"
-	"flag"
-	"time"
-	"airdispat.ch/common"
 	"airdispat.ch/airdispatch"
-	"encoding/hex"
-	"os"
-	"fmt"
-	"strconv"
+	"airdispat.ch/common"
+	"airdispat.ch/server/framework"
 	"bytes"
+	"encoding/hex"
+	"flag"
+	"fmt"
+	"github.com/airdispatch/dispatcher/models"
+	"os"
+	"strconv"
+	"strings"
+	"time"
 )
 
 // Configuration Varables
@@ -73,7 +74,7 @@ func main() {
 	}
 
 	savedTrackers := make([]string, len(theTrackers))
-	for i, v := range(theTrackers) {
+	for i, v := range theTrackers {
 		savedTrackers[i] = v.URL
 	}
 
@@ -81,9 +82,9 @@ func main() {
 	handler := &myServer{}
 	theServer := framework.Server{
 		LocationName: *me,
-		Key: loadedKey,
-		TrackerList: savedTrackers,
-		Delegate: handler,
+		Key:          loadedKey,
+		TrackerList:  savedTrackers,
+		Delegate:     handler,
 	}
 	serverErr := theServer.StartServer(*port)
 	if serverErr != nil {
@@ -93,11 +94,11 @@ func main() {
 
 }
 
-type myServer struct{
+type myServer struct {
 	framework.BasicServer
 }
 
-func (myServer) AllowSendConnection(user string) (bool) {
+func (myServer) AllowSendConnection(user string) bool {
 	return false
 }
 
@@ -110,70 +111,130 @@ func (myServer) SaveIncomingAlert(alert *airdispatch.Alert, alertData []byte, fr
 		fmt.Println("Getting User Error", err)
 	}
 
-	theSavedAlert := &models.Alert {
-		Content: alertData,
+	theSavedAlert := &models.Alert{
+		Content:   alertData,
 		ToAddress: fromAddr,
 		Timestamp: time.Now().Unix(),
-		ToUser: theUser.Id,
+		ToUser:    theUser.Id,
 	}
 
 	dbMap.Insert(theSavedAlert)
 }
 
-func (myServer) SavePublicMail(theMail []byte, fromAddr string) {}
-func (myServer) SavePrivateMail(theMail []byte, toAddress []string) (id string) { return ""; }
+func (myServer) SavePublicMail(theMail []byte, fromAddr string)                 {}
+func (myServer) SavePrivateMail(theMail []byte, toAddress []string) (id string) { return "" }
 
 func GetMessageId(theMail []byte) string {
 	return hex.EncodeToString(common.HashSHA(theMail))
 }
 
-func (myServer) RetrieveMessageForUser(id string, addr string) ([]byte) {
-	type queryResult struct {
-		Content []byte
-		ToAddress string
-		Keypair []byte
-		Address string
-		Timestamp int64
+func (myServer) RetrieveMessageForUser(id string, addr string) []byte {
+	var newMail *airdispatch.Mail
+	var keys *common.ADKey
+
+	// Respond to the Profile Message Seperately
+	if strings.HasSuffix(id, "profile") {
+		idComponents := strings.Split(id, "::")
+
+		query := "select * from dispatch_users where address='" + idComponents[0] + "'"
+
+		var results []*models.User
+		dbMap.Select(&results, query)
+
+		if len(results) != 1 {
+			fmt.Println("No use for that address.")
+			return nil
+		}
+
+		scopedKey, err := common.GobDecodeKey(bytes.NewBuffer(results[0].Keypair))
+		if err != nil {
+			fmt.Println("Error Getting Keys")
+			return nil
+		}
+		keys = scopedKey
+
+		currentTime := uint64(time.Now().Unix())
+		blank := ""
+		ad_profile_name := "airdispat.ch/profiles/name"
+		ad_profile_photo := "airdispat.ch/profiles/photo"
+
+		nameData := &airdispatch.MailData_DataType{
+			TypeName: &ad_profile_name,
+			Payload:  []byte(results[0].FullName),
+		}
+
+		photoData := &airdispatch.MailData_DataType{
+			TypeName: &ad_profile_photo,
+			Payload:  []byte("https://fbcdn-sphotos-f-a.akamaihd.net/hphotos-ak-ash4/302066_10151616869615972_963571219_n.jpg"),
+		}
+
+		allData := &airdispatch.MailData{
+			Payload: []*airdispatch.MailData_DataType{nameData, photoData},
+		}
+
+		data, err := proto.Marshal(allData)
+		if err != nil {
+			fmt.Println("Unable to Marshal the Data")
+			return nil
+		}
+
+		newMail = &airdispatch.Mail{
+			FromAddress: &results[0].Address,
+			Data:        data,
+			Encryption:  &noEncryption,
+			Timestamp:   &currentTime,
+			ToAddress:   &blank,
+		}
+	} else {
+		type queryResult struct {
+			Content   []byte
+			ToAddress string
+			Keypair   []byte
+			Address   string
+			Timestamp int64
+		}
+
+		query := "select m.content, m.toaddress, u.keypair, u.address, m.timestamp "
+		query += "from dispatch_messages m, dispatch_users u "
+		query += "where m.slug = '" + id + "' and m.sendinguser = u.id and m.toaddress = '" + addr + "' "
+		query += "limit 1 "
+
+		var results []*queryResult
+		dbMap.Select(&results, query)
+
+		if len(results) != 1 {
+			fmt.Println("Incorrect Number of Messages Returned")
+			return nil
+		}
+
+		scopedKey, err := common.GobDecodeKey(bytes.NewBuffer(results[0].Keypair))
+		if err != nil {
+			fmt.Println("Error Getting Keys")
+			return nil
+		}
+		keys = scopedKey
+
+		currentTime := uint64(results[0].Timestamp)
+
+		newMail = &airdispatch.Mail{
+			FromAddress: &results[0].Address,
+			Data:        results[0].Content,
+			Encryption:  &noEncryption,
+			Timestamp:   &currentTime,
+			ToAddress:   &results[0].ToAddress,
+		}
 	}
 
-	query := "select m.content, m.toaddress, u.keypair, u.address, m.timestamp " 
-	query += "from dispatch_messages m, dispatch_users u "
-	query += "where m.slug = '" + id + "' and m.sendinguser = u.id and m.toaddress = '" + addr + "' "
-	query += "limit 1 "
-
-	var results []*queryResult
-	dbMap.Select(&results, query)
-
-	if len(results) != 1 {
-		fmt.Println("Incorrect Number of Messages Returned")
-		return nil
-	}
-
-	keys, err := common.GobDecodeKey(bytes.NewBuffer(results[0].Keypair))
-	if err != nil {
-		fmt.Println("Error Getting Keys")
-		return nil
-	}
-
-	currentTime := uint64(results[0].Timestamp)
-
-	newMail := &airdispatch.Mail {
-		FromAddress: &results[0].Address,
-		Data: results[0].Content,
-		Encryption: &noEncryption,
-		Timestamp: &currentTime,
-		ToAddress: &results[0].ToAddress,
-	}
 	data, err := proto.Marshal(newMail)
 	if err != nil {
-		fmt.Println("Erorr marshalling", err);
+		fmt.Println("Erorr marshalling", err)
 	}
 
 	newMessage := &common.ADMessage{data, common.MAIL_MESSAGE, ""}
 
 	toSend, err := keys.CreateADMessage(newMessage)
 	if err != nil {
-		fmt.Println("Error making message", err);
+		fmt.Println("Error making message", err)
 	}
 
 	return toSend[6:]
@@ -184,7 +245,7 @@ func (m myServer) RetrieveInbox(addr string, since uint64) [][]byte {
 		Content []byte
 	}
 
-	query := "select m.content " 
+	query := "select m.content "
 	query += "from dispatch_alerts m, dispatch_users u "
 	query += "where m.touser = u.id and toaddress='' and timestamp>" + strconv.FormatUint(since, 10) + " "
 	query += "and u.address='" + addr + "' "
@@ -195,7 +256,7 @@ func (m myServer) RetrieveInbox(addr string, since uint64) [][]byte {
 
 	output := make([][]byte, len(results))
 
-	for i, v := range(results) {
+	for i, v := range results {
 		output[i] = v.Content
 	}
 
@@ -204,12 +265,12 @@ func (m myServer) RetrieveInbox(addr string, since uint64) [][]byte {
 
 func (m myServer) RetrievePublic(fromAddr string, since uint64) [][]byte {
 	type queryResult struct {
-		Content []byte
-		Keypair []byte
+		Content   []byte
+		Keypair   []byte
 		Timestamp int64
 	}
 
-	query := "select m.content, u.keypair, m.timestamp " 
+	query := "select m.content, u.keypair, m.timestamp "
 	query += "from dispatch_messages m, dispatch_users u "
 	query += "where m.sendinguser = u.id and toaddress='' and timestamp > " + strconv.FormatUint(since, 10) + " "
 	query += "and u.address = '" + fromAddr + "' "
@@ -223,7 +284,7 @@ func (m myServer) RetrievePublic(fromAddr string, since uint64) [][]byte {
 	var keys *common.ADKey = nil
 	toAll := ""
 
-	for i, v := range(results) {
+	for i, v := range results {
 		if keys == nil {
 			var err error
 			keys, err = common.GobDecodeKey(bytes.NewBuffer(v.Keypair))
@@ -235,12 +296,12 @@ func (m myServer) RetrievePublic(fromAddr string, since uint64) [][]byte {
 
 		currentTime := uint64(v.Timestamp)
 
-		newMail := &airdispatch.Mail {
+		newMail := &airdispatch.Mail{
 			FromAddress: &fromAddr,
-			Data: v.Content,
-			Encryption: &noEncryption,
-			Timestamp: &currentTime,
-			ToAddress: &toAll,
+			Data:        v.Content,
+			Encryption:  &noEncryption,
+			Timestamp:   &currentTime,
+			ToAddress:   &toAll,
 		}
 		data, _ := proto.Marshal(newMail)
 
