@@ -172,6 +172,12 @@ func ShowFolder(s *library.Server, folderName string) library.TemplateView {
 	}
 }
 
+func ShowProfile(s *library.Server) library.TemplateView {
+	return func(ctx *web.Context) {
+		s.WriteTemplateToContext("account/profile.html", ctx, nil)
+	}
+}
+
 func ShowAlert(s *library.Server) library.WildcardTemplateView {
 	return func(ctx *web.Context, val string) {
 		theAlert, _ := s.DbMap.Get(models.Alert{}, val)
