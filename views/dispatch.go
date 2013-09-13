@@ -3,8 +3,8 @@ package views
 import (
 	"airdispat.ch/client/framework"
 	"airdispat.ch/common"
-	"github.com/airdispatch/dispatcher/library"
 	"github.com/airdispatch/dispatcher/models"
+	library "github.com/airdispatch/go-pressure"
 )
 
 type UserProfile struct {
